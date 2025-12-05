@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精选工具与资源导航 - 现代卡片版</title>
+    <style>
+        /* 🎨 颜色定义 */
+        :root {
+            --primary-color: #007bff; /* 按钮和重点颜色 */
+            --accent-color: #00bcd4;  /* 强调色/霓虹蓝 */
+            --bg-color-main: #f0f2f5; /* 主背景 */
+            --bg-color-card: #ffffff; /* 卡片背景 */
+            --text-color: #333;
+            --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 基础样式和字体 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--bg-color-main);
+            color: var(--text-color);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            border-radius: 16px;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 50px;
+            font-size: 2.8em;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 链接卡片布局 */
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        /* 单个链接卡片样式 */
+        .link-item {
+            background-color: var(--bg-color-card);
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            border: 1px solid #e9ecef; /* 轻微边框 */
+        }
+
+        /* 悬停效果：提升、阴影增强、边框高亮 */
+        .link-item:hover {
+            box-shadow: var(--shadow-hover);
+            border-color: var(--accent-color);
+            background-color: #ffffff; /* 确保悬停时是纯白 */
+        }
+
+        /* 图片样式 */
+        .link-item img {
+            width: 70px; /* 略微缩小图标 */
+            height: 70px;
+            object-fit: contain;
+            border-radius: 50%; /* 圆形图标底座 */
+            margin-bottom: 20px;
+            padding: 8px;
+            background-color: var(--accent-color); /* 霓虹蓝底色 */
+            box-shadow: 0 0 15px rgba(0, 188, 212, 0.5); /* 霓虹光环 */
+            transition: transform 0.3s;
+        }
+
+        
+
+        /* 文本内容样式 */
+        .link-item h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .link-item p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 1em;
+        }
+
+        /* 针对 Grok.com 的特别提示 */
+        .grok-note {
+            font-style: italic;
+            color: #dc3545; /* 使用警告红 */
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>精选工具与资源导航</h1>
+
+        <div class="link-grid">
+            
+            <a class="link-item" href="https://ikuuu.de/user" target="_blank">
+                <img src="https://img.icons8.com/color/96/server.png" alt="科学上网">
+                <h3>科学上网</h3>
+                <p>加速、访问受限内容</p>
+            </a>
+
+            <a class="link-item" href="https://google.cn/chrome/fallback/" target="_blank">
+                <img src="https://img.icons8.com/color/96/google-chrome.png" alt="谷歌浏览器">
+                <h3>谷歌浏览器</h3>
+                <p>官方稳定下载</p>
+            </a>
+
+            <a class="link-item" href="https://antigravity.google/download" target="_blank">
+                <img src="https://img.icons8.com/color/96/code.png" alt="Antigravity">
+                <h3>谷歌AI编辑器</h3>
+                <p>Antigravity 下载</p>
+            </a>
+
+            <a class="link-item" href="https://cursor.com/cn" target="_blank">
+                <img src="https://img.icons8.com/fluency/96/cursor.png" alt="Cursor AI">
+                <h3>Cursor AI编辑器</h3>
+                <p>中文官网</p>
+            </a>
+            
+            <a class="link-item" href="https://gemini.google.com" target="_blank">
+                <img src="https://img.icons8.com/color/96/google-gemini.png" alt="Gemini">
+                <h3>Gemini</h3>
+                <p>谷歌 AI 聊天与创作</p>
+            </a>
+
+            <a class="link-item" href="https://zh.annas-archive.org/" target="_blank">
+                <img src="https://img.icons8.com/color/96/books.png" alt="Anna's Archive">
+                <h3>线上图书馆</h3>
+                <p>图书电子书查阅</p>
+            </a>
+            
+            <a class="link-item" href="https://grok.com" target="_blank">
+                <img src="https://img.icons8.com/color/96/robot.png" alt="Grok">
+                <h3>马斯克 Grok AI</h3>
+                <p>探索 Grok 官方网站</p>
+                <p class="grok-note">(访问或使用需特定条件)</p>
+            </a>
+
+            <a class="link-item" href="https://iax.mzjtd.com/#/home?from=lg" target="_blank">
+                <img src="https://img.icons8.com/color/96/chatbot.png" alt="chat8 AI">
+                <h3>chat8 AI</h3>
+                <p>AI 聊天与服务</p>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+</html>
