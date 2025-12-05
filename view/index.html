@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>龙猫主题 | 个人主页</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
 </head>
 <body>
 
     <nav class="navbar">
         <div class="nav-content">
             <div class="logo">
-                <i class="fas fa-paw"></i> となりのウェブ
+                <i class="fas fa-paw"></i> となりのウェブwxy八嘎雅鹿
             </div>
             <div class="nav-links">
                 <a href="#home">Home</a>
@@ -28,16 +27,19 @@
         <section class="hero-section">
             <div class="hero-text">
                 <img src="https://p9-passport.byteacctimg.com/img/user-avatar/fba1a8620f80176770aec5c8e827ba3d~100x100.awebp" alt="Profile Picture" class="profile-pic">
-                <h1 class="hero-title">[您的职位]</h1>
+                <h1 class="hero-title">
+                    [您的职位]
+                </h1>
                 <p class="hero-subtitle">
                     zhengrui的个人主页，欢迎来到我的小天地！我热爱编程与设计，喜欢将创意变为现实。希望通过这个网站与大家分享我的作品和想法。
                 </p>
                 <a href="#portfolio" class="cta-button">查看我的作品</a>
             </div>
-            <div style="padding: 40px; text-align: center; max-width: 40%;">
+            
+            <div style="padding: 40px; text-align: center; max-width: 40%; position: relative;">
+
                 <i class="fas fa-umbrella" style="font-size: 8em; color: #795548; display: block; margin-bottom: 15px;"></i>
                 <i class="fas fa-cat" style="font-size: 10em; color: #B0BEC5;"></i>
-                <!-- <p style="color: #4CAF50;">（龙猫和雨伞形象占位）</p> -->
             </div>
         </section>
 
@@ -76,7 +78,8 @@
             </div>
         </section>
         
-        <section style="text-align: center; padding: 50px 0;" id="contact">
+        <section style="text-align: center; padding: 50px 0; position: relative; overflow: hidden;" id="contact">
+          
             <h2 class="section-title">💌 联系我</h2>
             <p style="font-size: 1.1em; color: #777;">您可以通过邮箱或社交媒体联系我。</p>
             <p style="font-size: 1.2em; font-weight: bold; color: #4CAF50;">zhengrui@163.com</p>
@@ -92,19 +95,12 @@
             padding: 0;
             font-family: 'Arial', sans-serif;
             color: #333;
-            /* 模拟设计图中森林背景 */
             background-color: #e0f2f1; 
             background-image: url('./img/back.png'); 
-            
-            /* --- 核心修改：添加这一行 --- */
             background-attachment: fixed;
-            /* ------------------------- */
-
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
-            
-            /* 建议修改：使用 min-height 兼容长页面 */
             min-height: 100vh; 
         }
 
@@ -113,16 +109,16 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            padding-top: 100px; /* 留出顶部空间 */
+            padding-top: 100px;
         }
 
-        /* 3. 导航栏 (顶部栏) */
+        /* 3. 导航栏 */
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(255, 255, 255, 0.9); /* 半透明白色 */
+            background-color: rgba(255, 255, 255, 0.9);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
@@ -139,60 +135,34 @@
         .logo {
             font-size: 1.8em;
             font-weight: bold;
-            color: #4CAF50; /* 绿色 */
+            color: #4CAF50;
             display: flex;
             align-items: center;
         }
 
-        .logo i {
-            margin-right: 8px;
-            color: #795548; /* 棕色，模仿龙猫耳朵 */
-        }
+        .logo i { margin-right: 8px; color: #795548; }
+        .nav-links a { text-decoration: none; color: #555; margin-left: 25px; font-weight: 500; transition: color 0.3s; }
+        .nav-links a:hover { color: #4CAF50; }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #555;
-            margin-left: 25px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #4CAF50;
-        }
-
-        /* 4. 英雄区/欢迎区 (Hero Section) */
+        /* 4. 英雄区 */
         .hero-section {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 50px 0;
             margin-bottom: 50px;
-            /* 模拟设计图中白色半透明卡片背景 */
             background-color: rgba(255, 255, 255, 0.85); 
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             position: relative;
-            overflow: hidden;
+            /* 确保精灵不会跑到卡片外面去 */
+            /* overflow: hidden; */ 
         }
 
-        .hero-text {
-            padding: 40px;
-            max-width: 60%;
-        }
-
-        .hero-title {
-            font-size: 2.5em;
-            color: #388E3C; /* 深绿 */
-            margin-bottom: 10px;
-        }
-
-        .hero-subtitle {
-            font-size: 1.2em;
-            color: #795548; /* 棕色 */
-            margin-bottom: 30px;
-        }
-
+        .hero-text { padding: 40px; max-width: 60%; }
+        .hero-title { font-size: 2.5em; color: #388E3C; margin-bottom: 10px; }
+        .hero-subtitle { font-size: 1.2em; color: #795548; margin-bottom: 30px; }
+        
         .profile-pic {
             width: 100px;
             height: 100px;
@@ -205,7 +175,7 @@
         .cta-button {
             display: inline-block;
             padding: 10px 30px;
-            background-color: #8BC34A; /* 龙猫绿 */
+            background-color: #8BC34A;
             color: white;
             text-decoration: none;
             border-radius: 30px;
@@ -213,65 +183,20 @@
             transition: background-color 0.3s, transform 0.2s;
         }
 
-        .cta-button:hover {
-            background-color: #7CB342;
-            transform: translateY(-2px);
-        }
+        .cta-button:hover { background-color: #7CB342; transform: translateY(-2px); }
 
-        /* 5. 投资组合/作品集 (Portfolio Section) */
-        .portfolio-section {
-            padding: 40px 0;
-        }
+        /* 5. 作品集 */
+        .portfolio-section { padding: 40px 0; }
+        .section-title { font-size: 2em; color: #388E3C; text-align: center; margin-bottom: 40px; }
+        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .project-card { background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); transition: transform 0.3s; }
+        .project-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
+        .project-image { width: 100%; height: 200px; background-color: #CFD8DC; display: flex; justify-content: center; align-items: center; font-size: 1.5em; }
+        .project-info { padding: 20px; }
+        .project-title { font-size: 1.2em; margin-bottom: 10px; color: #555; }
+        .project-desc { font-size: 0.9em; color: #777; }
 
-        .section-title {
-            font-size: 2em;
-            color: #388E3C;
-            text-align: center;
-            margin-bottom: 40px;
-        }
 
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
 
-        .project-card {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s;
-        }
-
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .project-image {
-            width: 100%;
-            height: 200px;
-            background-color: #CFD8DC;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5em;
-        }
-
-        .project-info {
-            padding: 20px;
-        }
-
-        .project-title {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        .project-desc {
-            font-size: 0.9em;
-            color: #777;
-        }
     </style>
 </html>
