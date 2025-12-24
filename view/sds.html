@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Merry Christmas</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%); /* 深色冬夜背景 */
+            font-family: 'Georgia', serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .message {
+            position: absolute;
+            bottom: 10%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            pointer-events: none; /* 让点击穿透文字，不影响特效 */
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            opacity: 0;
+            animation: fadeIn 3s ease-in forwards;
+            animation-delay: 1s;
+        }
+
+        .message h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: normal;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fbf5b7, #bf953f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .message p {
+            font-size: 1rem;
+            color: #ddd;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 提示用户交互 */
+        .hint {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: rgba(255,255,255,0.3);
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hint">Try touching the tree ✨</div>
+
+    <div class="message">
+        <h1>Merry Christmas</h1>
+        <p>& Happy New Year!</p>
+    </div>
+
+    <canvas id="christmasCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('christmasCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let particles = [];
+    let snow = [];
+    let touchX = -1000;
+    let touchY = -1000;
+
+    // 适配屏幕尺寸
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // =============== 交互事件 (鼠标 & 触摸) =================
+    function updateCoords(e) {
+        if (e.touches) {
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+        } else {
+            touchX = e.clientX;
+            touchY = e.clientY;
+        }
+    }
+
+    // 鼠标移动
+    window.addEventListener('mousemove', updateCoords);
+    // 触摸移动
+    window.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // 防止滚动
+        updateCoords(e);
+    }, { passive: false });
+    
+    // 触摸开始
+    window.addEventListener('touchstart', (e) => {
+        updateCoords(e);
+    }, { passive: false });
+
+    // 移开重置
+    function resetCoords() {
+        touchX = -1000;
+        touchY = -1000;
+    }
+    window.addEventListener('mouseup', resetCoords);
+    window.addEventListener('touchend', resetCoords);
+
+
+    // =============== 类定义 =================
+
+    // 1. 雪花类
+    class Snowflake {
+        constructor() {
+            this.init();
+        }
+
+        init() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * -height; // 从上方开始
+            this.vx = Math.random() * 1 - 0.5; // 轻微左右飘
+            this.vy = Math.random() * 2 + 1;   // 下落速度
+            this.r = Math.random() * 2 + 0.5;  // 大小
+            this.alpha = Math.random() * 0.5 + 0.3;
+        }
+
+        update() {
+            this.y += this.vy;
+            this.x += this.vx;
+
+            if (this.y > height) {
+                this.init(); // 到底部重置
+            }
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+            ctx.fill();
+        }
+    }
+
+    // 2. 树粒子类
+    class TreeParticle {
+        constructor(i, total) {
+            this.index = i;
+            this.total = total;
+            this.reset();
+            // 初始随机分散，然后聚集成树
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+        }
+
+        reset() {
+            // 计算在螺旋树上的目标位置
+            // percent: 0 (树顶) -> 1 (树底)
+            this.percent = this.index / this.total; 
+            
+            // 树的高度参数
+            this.treeHeight = Math.min(height * 0.6, 500); 
+            this.treeWidth = Math.min(width * 0.8, 300);
+
+            // 垂直位置 (Y)
+            this.targetY = (height - this.treeHeight)/2 + this.percent * this.treeHeight + 50; // +50 向下微调
+
+            // 螺旋角度
+            this.angle = this.percent * 25 * Math.PI; // 圈数
+            
+            // 半径 (上窄下宽)
+            this.radius = this.percent * (this.treeWidth / 2);
+
+            // 基础颜色 (金色/火彩)
+            const hue = Math.random() > 0.9 ? Math.random() * 360 : 45; // 90%金色，10%彩灯
+            const sat = 100;
+            const light = 50 + Math.random() * 30;
+            this.color = `hsla(${hue}, ${sat}%, ${light}%,`;
+
+            // 物理属性
+            this.vx = 0;
+            this.vy = 0;
+            this.friction = 0.90; // 摩擦力，用于回归原位
+            this.baseSize = Math.random() * 2 + 1;
+        }
+
+        update(time) {
+            // 1. 计算当前的理想位置（带旋转动画）
+            const currentAngle = this.angle + time * 0.5; // 持续旋转
+            
+            // 3D 投影计算 (简单的透视)
+            // zScale 用于模拟远小近大和层级遮挡
+            const zScale = Math.cos(currentAngle) * 0.2 + 1; // 0.8 ~ 1.2
+            
+            let idealX = width / 2 + Math.sin(currentAngle) * this.radius;
+            let idealY = this.targetY;
+
+            // 2. 交互干扰逻辑
+            const dx = touchX - this.x;
+            const dy = touchY - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const interactRadius = 100; // 手指影响范围
+
+            if (dist < interactRadius) {
+                // 如果触碰，粒子被推开
+                const force = (interactRadius - dist) / interactRadius;
+                const angle = Math.atan2(dy, dx);
+                this.vx -= Math.cos(angle) * force * 2;
+                this.vy -= Math.sin(angle) * force * 2;
+            } else {
+                // 如果未触碰，受到引力回到 idealX, idealY
+                this.vx += (idealX - this.x) * 0.05;
+                this.vy += (idealY - this.y) * 0.05;
+            }
+
+            // 应用速度和摩擦
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // 3. 绘制
+            // 根据 zScale 调整大小和透明度，制造立体感
+            const size = this.baseSize * zScale;
+            const alpha = (zScale - 0.5) + (Math.random() * 0.3); // 闪烁效果
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color + alpha + ')';
+            
+            // 发光效果
+            if (zScale > 1) {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color + '1)';
+            } else {
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.fill();
+            ctx.shadowBlur = 0; // 重置以免影响性能
+        }
+    }
+
+    // 3. 顶部星星类
+    class Star {
+        constructor() {
+            this.x = width / 2;
+            this.y = 0;
+            this.size = 20;
+            this.angle = 0;
+        }
+
+        update(treeTopY) {
+            this.x = width / 2;
+            this.y = treeTopY - 20;
+            this.angle += 0.02;
+            
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle);
+            
+            ctx.beginPath();
+            ctx.fillStyle = "#fff";
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#ffffcc";
+            
+            // 画一个简单的十字星光
+            for (let i = 0; i < 4; i++) {
+                ctx.rotate(Math.PI / 2);
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, -this.size);
+                ctx.lineTo(5, -5);
+                ctx.lineTo(0, 0);
+            }
+            ctx.fill();
+            
+            // 中心亮斑
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffaa";
+            ctx.fill();
+            
+            ctx.restore();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    // =============== 初始化与循环 =================
+
+    function init() {
+        particles = [];
+        snow = [];
+        
+        // 创建树粒子
+        const particleCount = window.innerWidth < 600 ? 600 : 1000; // 移动端减少粒子数优化性能
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new TreeParticle(i, particleCount));
+        }
+
+        // 创建雪花
+        for (let i = 0; i < 100; i++) {
+            snow.push(new Snowflake());
+        }
+    }
+
+    const star = new Star();
+    let time = 0;
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        time += 0.02;
+
+        // 1. 画雪花
+        snow.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        // 2. 画树
+        // 获取树顶位置传给星星
+        let treeTopY = height / 2; 
+        if(particles.length > 0) treeTopY = particles[0].targetY;
+
+        particles.forEach(p => p.update(time));
+
+        // 3. 画顶部的星
+        star.update(treeTopY);
+
+        requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+
+    // 窗口大小改变时重置
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            resize();
+            init();
+        }, 200);
+    });
+
+</script>
+</body>
+</html>
