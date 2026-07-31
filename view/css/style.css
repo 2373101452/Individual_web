@@ -476,6 +476,7 @@ select.bt-input{cursor:pointer;padding-right:28px}
   .bell-btn{width:42px;height:42px;margin:0 6px 0 8px}
   .bell-panel{right:12px}
   .app-header .brand-sub{display:none}
+  .app-header .brand-logo{display:none}
   .app-header .brand{width:auto;flex:1;border-right:none;padding:0}
   .notice-bar{padding-left:10px}
   .notice-track span{font-size:12px;padding-right:48px}
@@ -486,6 +487,7 @@ select.bt-input{cursor:pointer;padding-right:28px}
   .content-sticky{padding:16px 16px 14px}
   .content-header{padding-bottom:8px}
   .content-toolbar .btn-add{display:none}
+  .btn-batch{display:none}
 
   .content-toolbar{padding:0}
   .search{flex:1 1 100%}
