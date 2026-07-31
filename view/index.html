@@ -1,788 +1,924 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D 粒子手势交互系统 v2.1 - 双指旋钮操控版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/"
-            }
-        }
-    </script>
-    <!-- MediaPipe Hands -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网址管家 · LinkVault</title>
+<style>
+  :root{
+    --bg:#f5f7fa;
+    --card:#ffffff;
+    --border:#e6e9ef;
+    --text:#1f2933;
+    --text-muted:#6b7280;
+    --primary:#3b5bdb;
+    --primary-hover:#2b4acb;
+    --primary-soft:#eef1fd;
+    --danger:#e03131;
+    --danger-soft:#fdeaea;
+    --star:#f59f00;
+    --shadow:0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-lg:0 10px 30px rgba(0,0,0,.12);
+    --radius:10px;
+    --radius-sm:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
 
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #020205; font-family: 'Segoe UI', sans-serif; }
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #video-element { display: none; }
-        
-        .glass-panel {
-            background: rgba(10, 10, 20, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-        }
+  /* ====== Layout ====== */
+  body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  .app{display:none} /* legacy */
 
-        .control-btn {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-        }
-        .control-btn.active {
-            background: linear-gradient(135deg, rgba(100, 200, 255, 0.4), rgba(100, 200, 255, 0.1));
-            border: 1px solid rgba(100, 200, 255, 0.5);
-            box-shadow: 0 0 25px rgba(79, 209, 197, 0.3);
-            text-shadow: 0 0 8px rgba(255,255,255,0.8);
-        }
+  /* Top header bar */
+  .app-header{
+    background:var(--card);border-bottom:1px solid var(--border);
+    padding:0 24px 0 0;display:flex;align-items:center;gap:0;height:52px;flex-shrink:0;
+  }
+  .app-header .brand{
+    display:flex;align-items:center;gap:10px;
+    width:240px;flex-shrink:0;height:100%;
+    border-right:1px solid var(--border);
+    padding:0 24px;
+  }
+  .brand-left{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .app-header .brand-logo{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(135deg,#3b5bdb,#7048e8);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;
+  }
+  .app-header .brand-name{font-size:16px;font-weight:700}
+  .app-header .brand-sub{font-size:11px;color:var(--text-muted)}
 
-        .loader {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #00ffff;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  /* Notice ticker */
+  .notice-bar{
+    flex:1;min-width:0;height:100%;display:flex;align-items:center;
+    overflow:hidden;position:relative;
+    padding-left:14px;
+  }
+  .notice-track{
+    display:flex;align-items:center;white-space:nowrap;
+    animation:notice-scroll 22s linear infinite;will-change:transform;
+  }
+  .notice-bar:hover .notice-track{animation-play-state:paused}
+  .notice-track span{
+    font-size:13px;font-weight:500;color:var(--danger);padding-right:64px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .notice-track span::before{
+    content:"⚠";font-size:14px;
+  }
+  @keyframes notice-scroll{
+    from{transform:translateX(0)}
+    to{transform:translateX(-50%)}
+  }
 
-        .custom-scroll::-webkit-scrollbar { height: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
-        
-        .mode-item { transition: all 0.2s ease; opacity: 0.4; transform: scale(0.95); font-weight: normal; }
-        .mode-item.active { opacity: 1; transform: scale(1.0); color: #22d3ee; font-weight: bold; text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
-    </style>
+  .menu-toggle{
+    display:none;width:38px;height:38px;margin-right:4px;flex-shrink:0;
+    border:none;background:transparent;cursor:pointer;border-radius:8px;
+    color:var(--text);align-items:center;justify-content:center;
+  }
+  .menu-toggle:active{background:var(--bg)}
+
+  .body-wrap{display:flex;flex:1;overflow:hidden}
+
+  /* Sidebar */
+  .sidebar{
+    width:240px;background:var(--card);border-right:1px solid var(--border);
+    padding:12px 0;flex-shrink:0;height:100%;overflow-y:auto;
+  }
+  .sidebar-overlay{display:none}
+
+  .nav-section{padding:8px 12px}
+  .nav-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--text-muted);padding:8px 8px 4px;font-weight:600;
+  }
+  .nav-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;
+    font-size:14px;color:var(--text);transition:.15s;margin-bottom:2px;
+  }
+  .nav-item:hover{background:var(--primary-soft)}
+  .nav-item.active{background:var(--primary);color:#fff}
+  .nav-item.active .nav-count{background:rgba(255,255,255,.25);color:#fff}
+  .nav-count{
+    font-size:11px;background:var(--bg);padding:1px 7px;border-radius:10px;color:var(--text-muted);
+  }
+  .nav-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px}
+
+  /* Main */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+
+  .search{
+    flex:1;max-width:420px;position:relative;
+  }
+  .search input{
+    width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);
+    border-radius:var(--radius-sm);font-size:14px;background:var(--bg);transition:.15s;
+  }
+  .search input:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-soft)}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted)}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 14px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;
+    cursor:pointer;border:none;transition:.15s;white-space:nowrap;
+  }
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-hover)}
+  .btn-ghost{background:transparent;color:var(--text-muted)}
+  .btn-ghost:hover{background:var(--bg);color:var(--text)}
+  .btn-outline{background:var(--card);border:1px solid var(--border);color:var(--text)}
+  .btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-danger{background:var(--danger-soft);color:var(--danger)}
+  .btn-danger:hover{background:var(--danger);color:#fff}
+  .btn-sm{padding:5px 10px;font-size:13px}
+
+  /* Content */
+  .content{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
+  .content-sticky{
+    position:sticky;top:0;z-index:10;
+    padding:20px 24px 14px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    background:rgba(245,247,250,.8);
+  }
+  .content-header{padding-bottom:8px}
+  .content-title{font-size:20px;font-weight:700;line-height:1.35}
+  .content-meta{font-size:13px;color:var(--text-muted);line-height:1.35}
+  .header-add-btn{display:none}
+
+  /* Content toolbar */
+  .content-toolbar{
+    display:flex;align-items:center;gap:14px;
+  }
+
+  /* Grid */
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;
+    padding:12px 24px 24px;
+  }
+
+  /* Card */
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px;transition:.18s;position:relative;display:flex;flex-direction:column;
+  }
+  .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);border-color:transparent}
+  .card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+  .favicon{
+    width:36px;height:36px;border-radius:8px;flex-shrink:0;
+    background:var(--bg);display:flex;align-items:center;justify-content:center;
+    overflow:hidden;border:1px solid var(--border);
+  }
+  .favicon img{width:22px;height:22px}
+  .favicon-fallback{font-size:16px;font-weight:700;color:var(--primary)}
+  .card-info{flex:1;min-width:0}
+  .card-name{
+    font-size:15px;font-weight:600;margin-bottom:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .card-url{
+    font-size:12px;color:var(--text-muted);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .card-url a{color:var(--primary);text-decoration:none}
+  .card-url a:hover{text-decoration:underline}
+
+  .star-btn{
+    background:none;border:none;cursor:pointer;font-size:24px;
+    color:var(--text-muted);padding:2px;line-height:1;transition:.15s;
+  }
+  .star-btn:hover{transform:scale(1.2)}
+  .star-btn.active{color:var(--star)}
+
+  .card-desc{
+    font-size:13px;color:var(--text-muted);margin-bottom:10px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+  .tag{
+    font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg);color:var(--text-muted);
+  }
+  .type-badge{
+    font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;
+  }
+
+  .card-foot{
+    display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+    margin-top:auto;padding-top:10px;border-top:1px dashed var(--border);
+  }
+  .card-time{font-size:11px;color:var(--text-muted)}
+  .card-actions{display:flex;gap:4px}
+  .icon-btn{
+    width:28px;height:28px;border:none;background:transparent;cursor:pointer;
+    border-radius:6px;display:flex;align-items:center;justify-content:center;
+    color:var(--text-muted);transition:.15s;
+  }
+  .icon-btn:hover{background:var(--bg);color:var(--text)}
+  .icon-btn.danger:hover{background:var(--danger-soft);color:var(--danger)}
+
+  .text-btn{
+    height:28px;padding:0 8px;border:none;background:transparent;
+    color:var(--text-muted);cursor:pointer;border-radius:6px;font-size:12px;
+    font-family:inherit;line-height:1;transition:.15s;
+  }
+  .text-btn:hover{color:var(--primary);background:var(--primary-soft)}
+  .text-btn.danger:hover{color:var(--danger);background:var(--danger-soft)}
+
+  /* Empty */
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--text-muted);
+  }
+  .empty-icon{font-size:48px;margin-bottom:12px;opacity:.4}
+  .empty h3{font-size:16px;color:var(--text);margin-bottom:6px;font-weight:600}
+  .empty p{font-size:14px;margin-bottom:16px}
+
+  /* Modal */
+  .modal-mask{
+    position:fixed;inset:0;background:rgba(15,23,42,.45);
+    display:none;align-items:center;justify-content:center;z-index:100;
+    backdrop-filter:blur(2px);
+  }
+  .modal-mask.show{display:flex}
+  .modal{
+    background:var(--card);border-radius:14px;width:min(560px,92vw);
+    max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);
+    animation:pop .18s ease;
+  }
+  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal-head{
+    padding:18px 22px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1;
+  }
+  .modal-title{font-size:17px;font-weight:700}
+  .modal-close{
+    width:30px;height:30px;border:none;background:transparent;cursor:pointer;
+    font-size:20px;color:var(--text-muted);border-radius:6px;
+  }
+  .modal-close:hover{background:var(--bg)}
+  .modal-body{padding:20px 22px}
+  .modal-foot{
+    padding:14px 22px;border-top:1px solid var(--border);
+    display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--card);
+  }
+
+  /* Form */
+  .form-row{margin-bottom:14px}
+  .form-row.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-label{
+    display:block;font-size:13px;font-weight:500;margin-bottom:5px;color:var(--text);
+  }
+  .form-label .req{color:var(--danger)}
+  .form-control{
+    width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    font-size:14px;font-family:inherit;background:var(--card);color:var(--text);transition:.15s;
+  }
+  .form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  textarea.form-control{resize:vertical;min-height:70px}
+  select.form-control{cursor:pointer}
+
+  .type-picker{display:flex;flex-wrap:wrap;gap:6px}
+  .type-opt{
+    padding:5px 11px;border-radius:14px;border:1px solid var(--border);
+    font-size:13px;cursor:pointer;transition:.15s;background:var(--card);
+  }
+  .type-opt:hover{border-color:var(--primary)}
+  .type-opt.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#1f2933;color:#fff;padding:10px 18px;border-radius:8px;
+    font-size:14px;opacity:0;transition:.25s;z-index:200;pointer-events:none;
+    box-shadow:var(--shadow-lg);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Type colors */
+  .t-website{background:#e7f5ff;color:#1971c2}
+  .t-api{background:#f3f0ff;color:#6741d9}
+  .t-server{background:#fff4e6;color:#d9480f}
+  .t-database{background:#e6fcf5;color:#0c8599}
+  .t-tool{background:#fff0f6;color:#c2255c}
+  .t-other{background:#f1f3f5;color:#495057}
+
+  /* ====== Responsive / Mobile ====== */
+  @media(max-width:768px){
+    .menu-toggle{display:flex}
+
+    /* Sidebar becomes a slide-in drawer */
+    .sidebar{
+      position:fixed;top:52px;left:0;bottom:0;z-index:60;
+      width:80%;max-width:300px;height:auto;
+      transform:translateX(-100%);transition:transform .25s ease;
+      box-shadow:var(--shadow-lg);
+    }
+    .sidebar.open{transform:translateX(0)}
+    .sidebar-overlay{
+      display:block;position:fixed;inset:52px 0 0 0;z-index:55;
+      background:rgba(15,23,42,.4);opacity:0;visibility:hidden;transition:.25s;
+    }
+    .sidebar-overlay.show{opacity:1;visibility:visible}
+
+    .app-header{padding:0 12px;gap:10px}
+    .app-header .brand-sub{display:none}
+    .app-header .brand{width:auto;flex:1;border-right:none;padding:0}
+    .notice-bar{padding-left:8px}
+    .notice-track span{font-size:12px;padding-right:48px}
+
+    /* 新增按钮移到标题右侧 */
+    .header-add-btn{display:inline-flex}
+    .content-header .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .content-sticky{padding:14px 16px 12px}
+    .content-header{padding-bottom:6px}
+    .content-toolbar .btn-add{display:none}
+
+    .content-toolbar{padding:0}
+    .search{flex:1 1 100%}
+
+    .grid{padding:10px 16px 16px;grid-template-columns:1fr}
+    .card{padding:14px}
+
+    .text-btn{height:34px;padding:0 12px;font-size:13px}
+    .card-foot .card-actions{width:100%;justify-content:flex-end;gap:14px;flex-wrap:wrap}
+
+    .form-row.two{grid-template-columns:1fr}
+    .modal-body{padding:16px}
+    .modal-head{padding:14px 16px}
+    .modal-foot{padding:14px 16px;gap:10px;flex-wrap:nowrap}
+    .modal-foot .btn{flex:1;justify-content:center}
+  }
+</style>
 </head>
 <body>
+<div class="app-header">
+  <button class="menu-toggle" onclick="toggleSidebar()" aria-label="打开菜单">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <div class="brand">
+    <div class="brand-left">
+      <div class="brand-logo">L</div>
+      <div>
+        <div class="brand-name">MH Exclusive</div>
+        <div class="brand-sub">网址管理</div>
+      </div>
+    </div>
+  </div>
+  <div class="notice-bar" title="郑重声明">
+    <div class="notice-track">
+      <span>本站所有数据均存在本地，没有网络请求，没有数据服务器，丢失无法找回。</span>
+      <span>本站所有数据均存在本地，没有网络请求，没有数据服务器，丢失无法找回。</span>
+    </div>
+  </div>
+</div>
+<div class="body-wrap">
+  <!-- ====== Sidebar ====== -->
+  <aside class="sidebar">
 
-    <div id="canvas-container"></div>
-    <video id="video-element" playsinline></video>
-
-    <!-- Loading -->
-    <div id="loader-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-95 transition-opacity duration-700">
-        <div class="loader mb-6 shadow-[0_0_30px_rgba(0,255,255,0.3)]"></div>
-        <div class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-500 text-2xl font-bold tracking-widest uppercase">Visual Core</div>
-        <div class="text-gray-500 text-xs mt-3 tracking-widest">INITIALIZING PARTICLE ENGINE v2.1</div>
+    <div class="nav-section">
+      <div class="nav-title">视图</div>
+      <div class="nav-item active" data-filter="all">
+        <span><span class="nav-dot" style="background:#868e96"></span>全部地址</span>
+        <span class="nav-count" id="count-all">0</span>
+      </div>
+      <div class="nav-item" data-filter="starred">
+        <span><span class="nav-dot" style="background:#f59f00"></span>已收藏</span>
+        <span class="nav-count" id="count-starred">0</span>
+      </div>
     </div>
 
-    <!-- UI -->
-    <div class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 p-4 md:p-8 flex flex-col justify-between">
-        <div class="flex justify-between items-start pointer-events-auto">
-            <div class="glass-panel p-5 animate-fade-in-down transform transition-all hover:scale-105 duration-500">
-                <h1 class="text-white text-2xl font-bold tracking-tight mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">粒子 · 幻境 <span class="text-xs text-cyan-400 align-top">v2.1</span></h1>
-                <div class="flex items-center gap-3 bg-black/30 rounded-full px-3 py-1 w-fit border border-white/5">
-                    <div id="status-dot" class="w-2 h-2 rounded-full bg-red-500 transition-all duration-500 shadow-[0_0_10px_red]"></div>
-                    <span id="status-text" class="text-[10px] text-gray-300 font-mono uppercase tracking-wider">System Offline</span>
-                </div>
-                <div class="text-[10px] text-gray-400 mt-3 font-mono border-t border-white/10 pt-2 flex flex-col gap-1">
-                    <div id="mode-scale" class="mode-item">👋 五指张合: 能量爆发 (缩放)</div>
-                    <div id="mode-rotate" class="mode-item">☝️ 食指滑动: 视角旋转 (锁定缩放)</div>
-                    <div id="mode-roll" class="mode-item">✌️ 双指旋转: 平面翻转 (旋钮操控)</div>
-                </div>
+    <div class="nav-section">
+      <div class="nav-title">分类</div>
+      <div class="nav-item" data-filter="website">
+        <span><span class="nav-dot" style="background:#1971c2"></span>网站</span>
+        <span class="nav-count" id="count-website">0</span>
+      </div>
+      <div class="nav-item" data-filter="api">
+        <span><span class="nav-dot" style="background:#6741d9"></span>API 接口</span>
+        <span class="nav-count" id="count-api">0</span>
+      </div>
+      <div class="nav-item" data-filter="server">
+        <span><span class="nav-dot" style="background:#d9480f"></span>服务器</span>
+        <span class="nav-count" id="count-server">0</span>
+      </div>
+      <div class="nav-item" data-filter="database">
+        <span><span class="nav-dot" style="background:#0c8599"></span>数据库</span>
+        <span class="nav-count" id="count-database">0</span>
+      </div>
+      <div class="nav-item" data-filter="tool">
+        <span><span class="nav-dot" style="background:#c2255c"></span>工具</span>
+        <span class="nav-count" id="count-tool">0</span>
+      </div>
+      <div class="nav-item" data-filter="other">
+        <span><span class="nav-dot" style="background:#495057"></span>其他</span>
+        <span class="nav-count" id="count-other">0</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-title">数据</div>
+      <div class="nav-item" onclick="exportData()">
+        <span><span class="nav-dot" style="background:#2f9e44"></span>导出 JSON</span>
+      </div>
+      <div class="nav-item" onclick="document.getElementById('import-file').click()">
+        <span><span class="nav-dot" style="background:#e8590c"></span>导入 JSON</span>
+      </div>
+      <div class="nav-item" onclick="clearAllData()" style="color:var(--danger)">
+        <span><span class="nav-dot" style="background:var(--danger)"></span>清空全部</span>
+      </div>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none">
+  </aside>
+
+  <!-- ====== Main ====== -->
+  <main class="main">
+    <div class="content">
+      <div class="content-sticky">
+        <div class="content-header">
+          <div class="header-row">
+            <div>
+              <div class="content-title" id="view-title">全部地址</div>
+              <div class="content-meta" id="view-meta">管理你的网络地址收藏</div>
             </div>
-            
-            <button onclick="toggleFullScreen()" class="glass-panel p-4 text-white hover:text-cyan-300 control-btn rounded-full group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
+            <button class="btn btn-primary header-add-btn" onclick="openModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              添加地址
             </button>
+          </div>
         </div>
 
-        <div class="pointer-events-auto flex flex-col md:flex-row gap-6 items-end md:items-center justify-between w-full">
-            <div class="glass-panel p-2 flex gap-2 overflow-x-auto max-w-full custom-scroll">
-                <button onclick="changeShape('sphere')" class="control-btn active px-6 py-3 rounded-xl text-sm text-white font-semibold whitespace-nowrap tracking-wide" data-shape="sphere">星云球</button>
-                <button onclick="changeShape('heart')" class="control-btn px-6 py-3 rounded-xl text-sm text-white font-semibold whitespace-nowrap tracking-wide" data-shape="heart">机械心</button>
-                <button onclick="changeShape('saturn')" class="control-btn px-6 py-3 rounded-xl text-sm text-white font-semibold whitespace-nowrap tracking-wide" data-shape="saturn">土星环</button>
-                <button onclick="changeShape('lotus')" class="control-btn px-6 py-3 rounded-xl text-sm text-white font-semibold whitespace-nowrap tracking-wide" data-shape="lotus">能量莲</button>
-                <button onclick="changeShape('galaxy')" class="control-btn px-6 py-3 rounded-xl text-sm text-white font-semibold whitespace-nowrap tracking-wide" data-shape="galaxy">黑洞</button>
-            </div>
-
-            <div class="glass-panel p-4 flex items-center gap-4 hover:bg-white/10 transition-colors">
-                <span class="text-white text-xs font-mono tracking-wider uppercase opacity-70">Emission Color</span>
-                <div class="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/20 hover:ring-cyan-400 transition-all">
-                    <input type="color" id="color-picker" value="#00ffff" class="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] cursor-pointer p-0 m-0 border-0" onchange="updateColor(this.value)">
-                </div>
-            </div>
+        <div class="content-toolbar">
+          <div class="search">
+            <span class="search-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input type="text" id="search-input" placeholder="搜索名称、网址或标签...">
+          </div>
+          <button class="btn btn-primary btn-add" onclick="openModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            添加地址
+          </button>
         </div>
+      </div>
+
+      <div id="list-container"></div>
     </div>
+  </main>
+</div>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-        // --- Configuration ---
-        const PARTICLE_COUNT = 45000; 
-        const PARTICLE_SIZE = 0.18;
-        const SATURN_BODY_RATIO = 0.3; 
-        
-        // State
-        let scene, camera, renderer, composer, particles, controls;
-        let targetPositions = []; 
-        let targetColors = []; 
-        let currentShape = 'sphere';
-        let handInfluence = 0; 
-        let isHandDetected = false;
-        let clock = new THREE.Clock();
+<!-- ====== Modal ====== -->
+<div class="modal-mask" id="modal-mask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">添加地址</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="link-form" onsubmit="return saveLink(event)">
+        <input type="hidden" id="link-id">
 
-        // Color State
-        let userBaseColor = new THREE.Color(0x00ffff); 
+        <div class="form-row">
+          <label class="form-label">名称 <span class="req">*</span></label>
+          <input type="text" id="link-name" class="form-control" placeholder="例如：GitHub" required>
+        </div>
 
-        // 旋转交互变量
-        let previousFingerPos = { x: 0, y: 0 };
-        let smoothedFingerPos = { x: 0, y: 0 }; 
-        let rotationVelocity = { x: 0, y: 0, z: 0 }; 
-        let isTrackingRotation = false; 
-        
-        // 【新增】双指旋钮交互变量
-        let isTrackingRoll = false;
-        let smoothedIndexTip = { x: 0, y: 0 };
-        let smoothedMiddleTip = { x: 0, y: 0 };
-        let previousRollAngle = 0;
+        <div class="form-row">
+          <label class="form-label">网址 <span class="req">*</span></label>
+          <input type="text" id="link-url" class="form-control" placeholder="https://github.com" required>
+        </div>
 
-        // 缩放交互变量
-        let currentGestureMode = 'none'; 
-        
-        // 模式锁定与信号防抖
-        let currentStableMode = 'scale'; 
-        let modeFrameCounter = 0; 
-        let lastTimeHandDetected = 0; 
-        
-        async function init() {
-            // 1. Scene & Camera
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x020205, 0.02);
+        <div class="form-row">
+          <label class="form-label">类型</label>
+          <div class="type-picker" id="type-picker">
+            <span class="type-opt active" data-type="website">网站</span>
+            <span class="type-opt" data-type="api">API 接口</span>
+            <span class="type-opt" data-type="server">服务器</span>
+            <span class="type-opt" data-type="database">数据库</span>
+            <span class="type-opt" data-type="tool">工具</span>
+            <span class="type-opt" data-type="other">其他</span>
+          </div>
+        </div>
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 30;
-            camera.position.y = 0;
+        <div class="form-row">
+          <label class="form-label">标签（逗号分隔）</label>
+          <input type="text" id="link-tags" class="form-control" placeholder="开发, 文档, 常用">
+        </div>
 
-            // 2. Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); 
-            renderer.toneMapping = THREE.ReinhardToneMapping;
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
+        <div class="form-row two">
+          <div>
+            <label class="form-label">账号</label>
+            <input type="text" id="link-user" class="form-control" placeholder="可选">
+          </div>
+          <div>
+            <label class="form-label">密码</label>
+            <input type="text" id="link-pass" class="form-control" placeholder="可选">
+          </div>
+        </div>
 
-            // 3. Post Processing (BLOOM)
-            const renderScene = new RenderPass(scene, camera);
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-            bloomPass.threshold = 0.05; 
-            bloomPass.strength = 1.4;   
-            bloomPass.radius = 0.6;     
+        <div class="form-row">
+          <label class="form-label">备注</label>
+          <textarea id="link-desc" class="form-control" placeholder="用途、说明、注意事项..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="document.getElementById('link-form').requestSubmit()">保存</button>
+    </div>
+  </div>
+</div>
 
-            composer = new EffectComposer(renderer);
-            composer.addPass(renderScene);
-            composer.addPass(bloomPass);
+<div class="toast" id="toast"></div>
 
-            // 4. Controls
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.autoRotate = true;
-            controls.autoRotateSpeed = 0.5;
-            controls.enableZoom = true;
+<script>
+/* ====== State ====== */
+const STORAGE_KEY = 'linkvault_data_v1';
+let links = [];
+let currentFilter = 'all';
+let currentSearch = '';
+let editingType = 'website';
 
-            // 5. Build World
-            createParticles();
-            await setupMediaPipe();
+const TYPE_LABELS = {
+  website:'网站', api:'API 接口', server:'服务器', database:'数据库', tool:'工具', other:'其他'
+};
+const VIEW_TITLES = {
+  all:'全部地址', starred:'已收藏',
+  website:'网站', api:'API 接口', server:'服务器', database:'数据库', tool:'工具', other:'其他'
+};
+const VIEW_META = {
+  all:'管理你的网络地址收藏', starred:'你标记为重要的地址',
+  website:'网页与应用站点', api:'后端接口与端点',
+  server:'主机与服务器资源', database:'数据库连接信息',
+  tool:'在线工具与服务', other:'其他类型的地址'
+};
 
-            window.addEventListener('resize', onWindowResize);
-            animate();
+/* ====== Storage ====== */
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    links = raw ? JSON.parse(raw) : [];
+  }catch(e){ links = []; }
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+}
+
+/* ====== Helpers ====== */
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function normalizeUrl(url){
+  url = url.trim();
+  if(!url) return '';
+  if(!/^https?:\/\//i.test(url) && !/^ftp:\/\//i.test(url)){
+    url = 'https://' + url;
+  }
+  return url;
+}
+function getDomain(url){
+  try{ return new URL(normalizeUrl(url)).hostname; }catch(e){ return url; }
+}
+function getFaviconUrl(url){
+  const domain = getDomain(url);
+  return 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=64';
+}
+function formatDateTime(ts){
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
+       + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+/* ====== Render ====== */
+function render(){
+  const filtered = getFiltered();
+  const container = document.getElementById('list-container');
+
+  if(filtered.length === 0){
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <h3>${currentSearch ? '没有匹配的地址' : '还没有地址'}</h3>
+        <p>${currentSearch ? '换个关键词试试' : '点击右上角"添加地址"开始管理你的网络资源'}</p>
+        <button class="btn btn-primary" onclick="openModal()">+ 添加第一个地址</button>
+      </div>`;
+  } else {
+    container.innerHTML = '<div class="grid">' + filtered.map(renderCard).join('') + '</div>';
+  }
+
+  // counts
+  updateCounts();
+  // view title
+  document.getElementById('view-title').textContent = VIEW_TITLES[currentFilter] || '全部地址';
+  document.getElementById('view-meta').textContent = VIEW_META[currentFilter] || '';
+}
+
+function getFiltered(){
+  let arr = links;
+  if(currentFilter === 'starred'){
+    arr = arr.filter(l=>l.starred);
+  } else if(currentFilter !== 'all'){
+    arr = arr.filter(l=>l.type === currentFilter);
+  }
+  if(currentSearch){
+    const q = currentSearch.toLowerCase();
+    arr = arr.filter(l =>
+      (l.name||'').toLowerCase().includes(q) ||
+      (l.url||'').toLowerCase().includes(q) ||
+      (l.tags||'').toLowerCase().includes(q) ||
+      (l.desc||'').toLowerCase().includes(q)
+    );
+  }
+  // starred first, then by time desc
+  arr = [...arr].sort((a,b)=>{
+    if(a.starred !== b.starred) return b.starred - a.starred;
+    return b.updatedAt - a.updatedAt;
+  });
+  return arr;
+}
+
+function renderCard(l){
+  const tags = (l.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+  const tagHtml = tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('');
+  const fav = getFaviconUrl(l.url);
+  const initial = escapeHtml((l.name||'?').charAt(0).toUpperCase());
+  return `
+    <div class="card" data-id="${l.id}">
+      <div class="card-top">
+        <div class="favicon">
+          <img src="${fav}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+          <span class="favicon-fallback" style="display:none">${initial}</span>
+        </div>
+        <div class="card-info">
+          <div class="card-name">${escapeHtml(l.name)}</div>
+          <div class="card-url"><a href="${escapeHtml(normalizeUrl(l.url))}" target="_blank" rel="noopener">${escapeHtml(getDomain(l.url))}</a></div>
+        </div>
+        <button class="star-btn ${l.starred?'active':''}" onclick="toggleStar('${l.id}')" title="${l.starred?'取消收藏':'收藏'}">
+          ${l.starred ? '★' : '☆'}
+        </button>
+      </div>
+      ${l.desc ? `<div class="card-desc">${escapeHtml(l.desc)}</div>` : ''}
+      <div class="card-tags">
+        <span class="type-badge t-${l.type}">${TYPE_LABELS[l.type]||l.type}</span>
+        ${tagHtml}
+      </div>
+      <div class="card-foot">
+        <div class="card-actions">
+          <button class="text-btn danger" onclick="deleteLink('${l.id}')" title="删除">删除</button>
+          ${l.user||l.pass ? `<button class="text-btn" onclick="copyCreds('${l.id}')" title="复制账号信息">复制账号</button>` : ''}
+          <button class="text-btn" onclick="editLink('${l.id}')" title="编辑此地址">编辑</button>
+          <button class="text-btn" onclick="copyUrl('${l.id}')" title="复制网址">复制网址</button>
+        </div>
+        <span class="card-time">${formatDateTime(l.createdAt || l.updatedAt)}</span>
+      </div>
+    </div>`;
+}
+
+function updateCounts(){
+  document.getElementById('count-all').textContent = links.length;
+  document.getElementById('count-starred').textContent = links.filter(l=>l.starred).length;
+  ['website','api','server','database','tool','other'].forEach(t=>{
+    document.getElementById('count-'+t).textContent = links.filter(l=>l.type===t).length;
+  });
+}
+
+/* ====== Filter & Search ====== */
+document.querySelectorAll('.nav-item[data-filter]').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item[data-filter]').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    currentFilter = item.dataset.filter;
+    render();
+  });
+});
+document.getElementById('search-input').addEventListener('input', e=>{
+  currentSearch = e.target.value.trim();
+  render();
+});
+
+/* ====== Mobile sidebar drawer ====== */
+function toggleSidebar(force){
+  const sb = document.querySelector('.sidebar');
+  const ov = document.querySelector('.sidebar-overlay');
+  if(!sb || !ov) return;
+  const open = (typeof force === 'boolean') ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', open);
+  ov.classList.toggle('show', open);
+}
+const sidebarEl = document.querySelector('.sidebar');
+if(sidebarEl){
+  sidebarEl.addEventListener('click', e=>{
+    if(e.target.closest('.nav-item') && window.innerWidth <= 768){
+      toggleSidebar(false);
+    }
+  });
+}
+
+/* ====== Modal ====== */
+function openModal(id){
+  document.getElementById('modal-mask').classList.add('show');
+  if(id){
+    const l = links.find(x=>x.id===id);
+    document.getElementById('modal-title').textContent = '编辑地址';
+    document.getElementById('link-id').value = l.id;
+    document.getElementById('link-name').value = l.name||'';
+    document.getElementById('link-url').value = l.url||'';
+    document.getElementById('link-tags').value = l.tags||'';
+    document.getElementById('link-user').value = l.user||'';
+    document.getElementById('link-pass').value = l.pass||'';
+    document.getElementById('link-desc').value = l.desc||'';
+    editingType = l.type || 'website';
+  } else {
+    document.getElementById('modal-title').textContent = '添加地址';
+    document.getElementById('link-form').reset();
+    document.getElementById('link-id').value = '';
+    editingType = 'website';
+  }
+  syncTypePicker();
+  setTimeout(()=>document.getElementById('link-name').focus(),50);
+}
+function closeModal(){
+  document.getElementById('modal-mask').classList.remove('show');
+}
+document.getElementById('modal-mask').addEventListener('click', e=>{
+  if(e.target.id === 'modal-mask') closeModal();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape') closeModal();
+});
+
+/* type picker */
+document.getElementById('type-picker').addEventListener('click', e=>{
+  if(e.target.classList.contains('type-opt')){
+    editingType = e.target.dataset.type;
+    syncTypePicker();
+  }
+});
+function syncTypePicker(){
+  document.querySelectorAll('.type-opt').forEach(o=>{
+    o.classList.toggle('active', o.dataset.type === editingType);
+  });
+}
+
+/* ====== CRUD ====== */
+function saveLink(e){
+  e.preventDefault();
+  const id = document.getElementById('link-id').value;
+  const data = {
+    name: document.getElementById('link-name').value.trim(),
+    url: document.getElementById('link-url').value.trim(),
+    type: editingType,
+    tags: document.getElementById('link-tags').value.trim(),
+    user: document.getElementById('link-user').value.trim(),
+    pass: document.getElementById('link-pass').value.trim(),
+    desc: document.getElementById('link-desc').value.trim(),
+  };
+  if(!data.name || !data.url){
+    toast('请填写名称和网址');
+    return false;
+  }
+  if(id){
+    const idx = links.findIndex(l=>l.id===id);
+    links[idx] = {...links[idx], ...data, updatedAt: Date.now()};
+    toast('已更新');
+  } else {
+    links.unshift({...data, id:genId(), starred:false, createdAt:Date.now(), updatedAt:Date.now()});
+    toast('已添加');
+  }
+  saveData();
+  closeModal();
+  render();
+  return false;
+}
+
+function editLink(id){ openModal(id); }
+
+function deleteLink(id){
+  const l = links.find(x=>x.id===id);
+  if(!l) return;
+  if(!confirm(`确定删除「${l.name}」吗？此操作不可撤销。`)) return;
+  links = links.filter(x=>x.id!==id);
+  saveData();
+  render();
+  toast('已删除');
+}
+
+function toggleStar(id){
+  const l = links.find(x=>x.id===id);
+  l.starred = !l.starred;
+  saveData();
+  render();
+  toast(l.starred ? '已收藏 ★' : '已取消收藏');
+}
+
+function copyUrl(id){
+  const l = links.find(x=>x.id===id);
+  navigator.clipboard.writeText(normalizeUrl(l.url)).then(()=>{
+    toast('网址已复制');
+  }).catch(()=>toast('复制失败'));
+}
+
+function copyCreds(id){
+  const l = links.find(x=>x.id===id);
+  const text = (l.user ? `账号：${l.user}\n` : '') + (l.pass ? `密码：${l.pass}` : '');
+  navigator.clipboard.writeText(text).then(()=>{
+    toast('账号信息已复制');
+  }).catch(()=>toast('复制失败'));
+}
+
+/* ====== Import / Export ====== */
+function exportData(){
+  if(links.length === 0){ toast('暂无数据可导出'); return; }
+  const blob = new Blob([JSON.stringify(links, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `linkvault-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('已导出 ' + links.length + ' 条');
+}
+
+document.getElementById('import-file').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error();
+      let added = 0;
+      data.forEach(item=>{
+        if(item.name && item.url){
+          links.unshift({
+            id:genId(),
+            name:item.name, url:item.url,
+            type:item.type||'other',
+            tags:item.tags||'', user:item.user||'', pass:item.pass||'', desc:item.desc||'',
+            starred:item.starred||false,
+            createdAt:item.createdAt||Date.now(),
+            updatedAt:Date.now()
+          });
+          added++;
         }
-
-        function createParticles() {
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(PARTICLE_COUNT * 3);
-            const colors = new Float32Array(PARTICLE_COUNT * 3);
-
-            const sphere = getShapePositions('sphere');
-            const initialColors = getShapeColors('sphere');
-            
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                positions[i * 3] = sphere[i * 3];
-                positions[i * 3 + 1] = sphere[i * 3 + 1];
-                positions[i * 3 + 2] = sphere[i * 3 + 2];
-
-                colors[i * 3] = initialColors[i * 3];
-                colors[i * 3 + 1] = initialColors[i * 3 + 1];
-                colors[i * 3 + 2] = initialColors[i * 3 + 2];
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            
-            const sprite = createParticleTexture();
-
-            const material = new THREE.PointsMaterial({
-                size: PARTICLE_SIZE,
-                map: sprite,
-                color: userBaseColor, 
-                transparent: true,
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending, 
-                depthWrite: false,
-                sizeAttenuation: true,
-                vertexColors: true
-            });
-
-            particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-            
-            targetPositions = Float32Array.from(sphere);
-            targetColors = Float32Array.from(initialColors); 
-        }
-
-        function createParticleTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 32; canvas.height = 32;
-            const context = canvas.getContext('2d');
-            const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
-            gradient.addColorStop(0, 'rgba(255,255,255,1)');
-            gradient.addColorStop(0.4, 'rgba(255,255,255,0.5)');
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, 32, 32);
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        function getShapeColors(type) {
-            const cols = new Float32Array(PARTICLE_COUNT * 3);
-            
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                let brightness = 0.2 + Math.random() * 0.8;
-                let r, g, b;
-
-                if (type === 'saturn') {
-                    if (i < PARTICLE_COUNT * SATURN_BODY_RATIO) {
-                        r = 1.0; g = 0.7; b = 0.3; 
-                    } else {
-                        r = 0.6; g = 0.8; b = 1.0; 
-                    }
-                    r *= brightness; g *= brightness; b *= brightness;
-                } else {
-                    r = brightness; g = brightness; b = brightness;
-                }
-
-                cols[i * 3] = r;
-                cols[i * 3 + 1] = g;
-                cols[i * 3 + 2] = b;
-            }
-            return cols;
-        }
-
-        function getShapePositions(type) {
-            const pos = new Float32Array(PARTICLE_COUNT * 3);
-            
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                let x, y, z;
-                
-                if (type === 'sphere') {
-                    const r = 10 + Math.random() * 2; 
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.acos(2 * Math.random() - 1);
-                    x = r * Math.sin(phi) * Math.cos(theta);
-                    y = r * Math.sin(phi) * Math.sin(theta);
-                    z = r * Math.cos(phi);
-                    if (i < PARTICLE_COUNT * 0.2) { x *= 0.3; y *= 0.3; z *= 0.3; }
-                } 
-                else if (type === 'heart') {
-                    const t = Math.PI - 2 * Math.PI * Math.random(); 
-                    const u = 2 * Math.PI * Math.random();
-                    x = 16 * Math.pow(Math.sin(t), 3);
-                    y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-                    z = 6 * Math.cos(t) * Math.sin(u) * Math.sin(t); 
-                    const scale = 0.6;
-                    x *= scale; y *= scale; z *= scale;
-                    if (Math.random() > 0.8) { x *= 1.1; y *= 1.1; z *= 1.1; }
-                } 
-                else if (type === 'saturn') {
-                    if (i < PARTICLE_COUNT * SATURN_BODY_RATIO) {
-                        const r = 5.5;
-                        const theta = Math.random() * Math.PI * 2;
-                        const phi = Math.acos(2 * Math.random() - 1);
-                        x = r * Math.sin(phi) * Math.cos(theta);
-                        y = r * 0.9 * Math.sin(phi) * Math.sin(theta); 
-                        z = r * Math.cos(phi);
-                    } else {
-                        const angle = Math.random() * Math.PI * 2;
-                        const ringSelector = Math.random();
-                        let r, thickness;
-                        if (ringSelector < 0.45) {
-                            r = 7 + Math.random() * 3.5; thickness = 0.2;
-                        } else if (ringSelector < 0.5) {
-                            r = 10.5 + Math.random() * 1.5; thickness = 0.1;
-                            if (Math.random() > 0.2) { x=0;y=0;z=0; pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z; continue; }
-                        } else {
-                            r = 12 + Math.random() * 5; thickness = 0.4;
-                        }
-                        r += (Math.random() - 0.5) * 0.3;
-                        x = r * Math.cos(angle);
-                        y = (Math.random() - 0.5) * thickness; 
-                        z = r * Math.sin(angle);
-                        const tilt = 0.4;
-                        const y_new = y * Math.cos(tilt) - x * Math.sin(tilt);
-                        const x_new = y * Math.sin(tilt) + x * Math.cos(tilt);
-                        x = x_new; y = y_new;
-                    }
-                }
-                else if (type === 'lotus') {
-                     const u = Math.random() * Math.PI * 2; 
-                     const v = Math.random(); 
-                     const petals = 7;
-                     const rBase = 8 * (0.5 + 0.5 * Math.pow(Math.sin(petals * u * 0.5), 2)) * v;
-                     x = rBase * Math.cos(u);
-                     z = rBase * Math.sin(u);
-                     y = 4 * Math.pow(v, 2) - 2;
-                     if (i < PARTICLE_COUNT * 0.15) { x = (Math.random()-0.5); z = (Math.random()-0.5); y = (Math.random()-0.5)*10; }
-                }
-                else if (type === 'galaxy') {
-                    const arms = 3; 
-                    const spin = i % arms;
-                    const angleOffset = (spin / arms) * Math.PI * 2;
-                    const dist = Math.pow(Math.random(), 0.5); 
-                    const r = dist * 20;
-                    const angle = dist * 10 + angleOffset;
-                    x = r * Math.cos(angle);
-                    z = r * Math.sin(angle);
-                    y = (Math.random() - 0.5) * (15 - r) * 0.2; 
-                    if (r < 2) y *= 0.2;
-                }
-
-                pos[i * 3] = x;
-                pos[i * 3 + 1] = y;
-                pos[i * 3 + 2] = z;
-            }
-            return pos;
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            const time = clock.getElapsedTime();
-            
-            const positions = particles.geometry.attributes.position.array;
-            const colors = particles.geometry.attributes.color.array;
-            
-            let targetScaleBase = 1.0;
-            let targetParticleSize = PARTICLE_SIZE; 
-            let turbulence = 0.05;
-
-            // 【模式应用】
-            if (isHandDetected) {
-                targetScaleBase = 0.2 + (handInfluence * 2.3);
-                turbulence = 0.02 + (handInfluence * 0.3);
-                targetParticleSize = PARTICLE_SIZE * (0.8 + handInfluence * 2.5);
-            } else {
-                targetScaleBase = 1.0 + Math.sin(time * 1.5) * 0.05;
-                targetParticleSize = PARTICLE_SIZE * (1.0 + Math.sin(time * 1.5) * 0.15);
-            }
-
-            if (particles && particles.material) {
-                particles.material.size = THREE.MathUtils.lerp(particles.material.size, targetParticleSize, 0.1);
-                
-                const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion).normalize();
-                const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize();
-                const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
-
-                particles.rotateOnWorldAxis(camUp, rotationVelocity.y);
-                particles.rotateOnWorldAxis(camRight, rotationVelocity.x);
-                particles.rotateOnWorldAxis(camForward, rotationVelocity.z);
-                
-                const MAX_SPEED = 0.06;
-                const MAX_ROLL_SPEED = 0.035;
-
-                rotationVelocity.x = THREE.MathUtils.clamp(rotationVelocity.x, -MAX_SPEED, MAX_SPEED);
-                rotationVelocity.y = THREE.MathUtils.clamp(rotationVelocity.y, -MAX_SPEED, MAX_SPEED);
-                rotationVelocity.z = THREE.MathUtils.clamp(rotationVelocity.z, -MAX_ROLL_SPEED, MAX_ROLL_SPEED);
-
-                rotationVelocity.x *= 0.92; 
-                rotationVelocity.y *= 0.92;
-                rotationVelocity.z *= 0.96; 
-            }
-
-            const lerpSpeed = 0.06;
-            const colorLerpSpeed = 0.03; 
-
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const idx = i * 3;
-                
-                let tx = targetPositions[idx];
-                let ty = targetPositions[idx+1];
-                let tz = targetPositions[idx+2];
-
-                const dist = Math.sqrt(tx * tx + ty * ty + tz * tz);
-                const normalizedDist = Math.min(dist / 20.0, 1.0);
-                
-                let distanceExpansionBoost = 1.0;
-                if (isHandDetected) {
-                    distanceExpansionBoost = 1.0 + (handInfluence * Math.pow(normalizedDist, 1.5) * 2.0);
-                }
-                
-                const finalScale = targetScaleBase * distanceExpansionBoost;
-                tx *= finalScale; ty *= finalScale; tz *= finalScale;
-
-                if (currentShape === 'galaxy') {
-                    const angle = time * (0.1 + (1.0 - (Math.sqrt(tx*tx+tz*tz)/20)) * 0.5); 
-                    const cos = Math.cos(angle); const sin = Math.sin(angle);
-                    const rx = tx * cos - tz * sin;
-                    const rz = tx * sin + tz * cos;
-                    tx = rx; tz = rz;
-                } else if (currentShape === 'lotus') {
-                     ty += Math.sin(time + tx) * 0.5;
-                } else {
-                    tx += Math.sin(time * 2 + i) * turbulence;
-                    ty += Math.cos(time * 3 + i) * turbulence;
-                    tz += Math.sin(time * 4 + i) * turbulence;
-                }
-
-                positions[idx] += (tx - positions[idx]) * lerpSpeed;
-                positions[idx+1] += (ty - positions[idx+1]) * lerpSpeed;
-                positions[idx+2] += (tz - positions[idx+2]) * lerpSpeed;
-                
-                if (targetColors.length > 0) {
-                    colors[idx] += (targetColors[idx] - colors[idx]) * colorLerpSpeed;
-                    colors[idx+1] += (targetColors[idx+1] - colors[idx+1]) * colorLerpSpeed;
-                    colors[idx+2] += (targetColors[idx+2] - colors[idx+2]) * colorLerpSpeed;
-                }
-
-                if (Math.random() > 0.9995) {
-                    colors[idx] = 2.0; colors[idx+1] = 2.0; colors[idx+2] = 2.0; 
-                }
-                if (colors[idx] > 1.5) {
-                    colors[idx] *= 0.9; colors[idx+1] *= 0.9; colors[idx+2] *= 0.9;
-                }
-            }
-
-            particles.geometry.attributes.position.needsUpdate = true;
-            particles.geometry.attributes.color.needsUpdate = true;
-
-            if (!isHandDetected) {
-                controls.autoRotate = true;
-                controls.autoRotateSpeed = 1.0;
-            } else {
-                controls.autoRotate = false;
-            }
-
-            controls.update();
-            composer.render();
-        }
-
-        async function setupMediaPipe() {
-            const videoElement = document.getElementById('video-element');
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
-            const modeScaleText = document.getElementById('mode-scale');
-            const modeRotateText = document.getElementById('mode-rotate');
-            const modeRollText = document.getElementById('mode-roll'); 
-
-            const hands = new Hands({locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-            }});
-
-            hands.setOptions({
-                maxNumHands: 1,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-
-            hands.onResults((results) => {
-                const now = Date.now();
-
-                // 【信号防抖核心逻辑】
-                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    // --- 检测到手 ---
-                    isHandDetected = true;
-                    lastTimeHandDetected = now; 
-                    
-                    statusDot.className = "w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_15px_cyan]";
-                    statusText.innerText = "LINK ESTABLISHED";
-                    statusText.className = "text-[10px] text-cyan-300 font-mono uppercase tracking-wider font-bold";
-                    
-                    const landmarks = results.multiHandLandmarks[0];
-                    
-                    // ... [手势识别逻辑] ...
-                    const getDist = (i, j) => {
-                        return Math.sqrt(Math.pow(landmarks[i].x - landmarks[j].x, 2) + Math.pow(landmarks[i].y - landmarks[j].y, 2));
-                    };
-
-                    // 【核心优化：手势判定宽松化】
-                    // 只要指尖离手腕足够远，就认为是伸直的。
-                    // 系数 1.1 比较宽松，确保稍微弯一点也算伸直
-                    const isIndexOpen = getDist(8, 0) > getDist(6, 0) * 1.1;
-                    const isMiddleOpen = getDist(12, 0) > getDist(10, 0) * 1.1;
-                    
-                    // 无名指和小指：用于判定是否为 Scale 模式
-                    // 只要它们有一个是明显伸直的，就认为不是双指模式
-                    const isRingOpen = getDist(16, 0) > getDist(14, 0) * 1.1;
-                    const isPinkyOpen = getDist(20, 0) > getDist(18, 0) * 1.1;
-
-                    let detectedMode = 'scale';
-
-                    // 【优先级逻辑优化】
-                    // 1. 如果无名指或小指是伸直的 -> Scale (最优先，防止五指张开时误判)
-                    // 2. 如果只有食指和中指伸直 -> Roll (双指画圈)
-                    // 3. 如果只有食指伸直 -> Rotate (单指旋转)
-                    // 4. 其他情况 (握拳等) -> Scale
-                    
-                    if (isRingOpen || isPinkyOpen) {
-                        detectedMode = 'scale'; 
-                    } else if (isIndexOpen && isMiddleOpen) {
-                        detectedMode = 'roll'; 
-                    } else if (isIndexOpen && !isMiddleOpen) {
-                        detectedMode = 'rotate'; 
-                    } else {
-                        detectedMode = 'scale'; // 握拳也是 Scale (收缩)
-                    }
-
-                    if (detectedMode === currentStableMode) {
-                        modeFrameCounter = 0;
-                    } else {
-                        modeFrameCounter++;
-                        // 减少切换阈值，让反应更快 (4帧约 60ms)
-                        let switchThreshold = 4; 
-
-                        if (modeFrameCounter > switchThreshold) {
-                            currentStableMode = detectedMode;
-                            modeFrameCounter = 0;
-                            isTrackingRotation = false;
-                            isTrackingRoll = false;
-                            previousFingerPos = { x: 0, y: 0 }; 
-                        }
-                    }
-
-                    modeScaleText.classList.remove('active');
-                    modeRotateText.classList.remove('active');
-                    modeRollText.classList.remove('active');
-                    if (currentStableMode === 'roll') modeRollText.classList.add('active');
-                    else if (currentStableMode === 'rotate') modeRotateText.classList.add('active');
-                    else modeScaleText.classList.add('active');
-
-                    if (currentStableMode === 'roll') {
-                        // 【平面旋转 - 绝对角度跟手版】
-                        const rawIndex = landmarks[8];
-                        const rawMiddle = landmarks[12];
-
-                        // 1. 低通滤波 (平滑度 0.2, 兼顾响应和稳定)
-                        if (!isTrackingRoll) {
-                            smoothedIndexTip = { x: rawIndex.x, y: rawIndex.y };
-                            smoothedMiddleTip = { x: rawMiddle.x, y: rawMiddle.y };
-                            // 初始化角度
-                            const dx = rawIndex.x - rawMiddle.x;
-                            const dy = rawIndex.y - rawMiddle.y;
-                            previousRollAngle = Math.atan2(dy, dx);
-                            isTrackingRoll = true;
-                        } else {
-                            const lerpFactor = 0.2;
-                            smoothedIndexTip.x = THREE.MathUtils.lerp(smoothedIndexTip.x, rawIndex.x, lerpFactor);
-                            smoothedIndexTip.y = THREE.MathUtils.lerp(smoothedIndexTip.y, rawIndex.y, lerpFactor);
-                            smoothedMiddleTip.x = THREE.MathUtils.lerp(smoothedMiddleTip.x, rawMiddle.x, lerpFactor);
-                            smoothedMiddleTip.y = THREE.MathUtils.lerp(smoothedMiddleTip.y, rawMiddle.y, lerpFactor);
-                        }
-
-                        // 2. 计算当前角度 (Between fingers)
-                        const dx = smoothedIndexTip.x - smoothedMiddleTip.x;
-                        const dy = smoothedIndexTip.y - smoothedMiddleTip.y;
-                        const currentAngle = Math.atan2(dy, dx);
-
-                        let deltaAngle = currentAngle - previousRollAngle;
-
-                        // 处理 -PI 到 PI 的跳变
-                        if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
-                        if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
-
-                        // 修正系数：-1.5 (负号修正镜像，1.5放大手感)
-                        const inputVelocity = -deltaAngle * 1.5; 
-                        
-                        // 混合输入速度和当前惯性，让它既跟手又有重量
-                        rotationVelocity.z = THREE.MathUtils.lerp(rotationVelocity.z, inputVelocity, 0.3);
-                        
-                        previousRollAngle = currentAngle;
-                        isTrackingRotation = false;
-
-                    } else if (currentStableMode === 'rotate') {
-                        const rawFingerX = landmarks[8].x;
-                        const rawFingerY = landmarks[8].y;
-
-                        if (!isTrackingRotation) {
-                            smoothedFingerPos = { x: rawFingerX, y: rawFingerY };
-                            previousFingerPos = { x: rawFingerX, y: rawFingerY };
-                            isTrackingRotation = true;
-                        }
-
-                        const smoothingFactor = 0.2; 
-                        smoothedFingerPos.x = THREE.MathUtils.lerp(smoothedFingerPos.x, rawFingerX, smoothingFactor);
-                        smoothedFingerPos.y = THREE.MathUtils.lerp(smoothedFingerPos.y, rawFingerY, smoothingFactor);
-
-                        const deltaX = smoothedFingerPos.x - previousFingerPos.x;
-                        const deltaY = smoothedFingerPos.y - previousFingerPos.y;
-                        
-                        const MOVE_THRESHOLD = 0.005; 
-
-                        if (Math.abs(deltaX) > MOVE_THRESHOLD || Math.abs(deltaY) > MOVE_THRESHOLD) {
-                            const sensitivity = 3.5; 
-                            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                                const effectiveX = deltaX > 0 ? deltaX - MOVE_THRESHOLD : deltaX + MOVE_THRESHOLD;
-                                rotationVelocity.y -= effectiveX * sensitivity; 
-                            } else {
-                                const effectiveY = deltaY > 0 ? deltaY - MOVE_THRESHOLD : deltaY + MOVE_THRESHOLD;
-                                rotationVelocity.x += effectiveY * sensitivity;
-                            }
-                        }
-                        previousFingerPos = { x: smoothedFingerPos.x, y: smoothedFingerPos.y };
-                        isTrackingRoll = false;
-                        
-                    } else {
-                        // 【缩放模式】
-                        if (isTrackingRoll) { isTrackingRoll = false; }
-                        isTrackingRotation = false;
-
-                        const tips = [4, 8, 12, 16, 20];
-                        let totalDist = 0;
-                        tips.forEach(idx => {
-                            totalDist += getDist(idx, 0); 
-                        });
-                        
-                        const avgDist = totalDist / 5;
-                        let rawOpenness = (avgDist - 0.08) / (0.4 - 0.08);
-                        rawOpenness = Math.max(0, Math.min(1, rawOpenness));
-
-                        handInfluence = THREE.MathUtils.lerp(handInfluence, rawOpenness, 0.2);
-                    }
-
-                } else {
-                    // --- 未检测到手 ---
-                    if (now - lastTimeHandDetected < 800) {
-                        return; 
-                    }
-
-                    isHandDetected = false;
-                    isTrackingRotation = false;
-                    isTrackingRoll = false;
-                    modeFrameCounter = 0;
-                    currentStableMode = 'scale';
-
-                    statusDot.className = "w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_red]";
-                    statusText.innerText = "SEARCHING SIGNAL...";
-                    statusText.className = "text-[10px] text-red-400 font-mono uppercase tracking-wider animate-pulse";
-                    
-                    handInfluence = THREE.MathUtils.lerp(handInfluence, 0.5, 0.02); 
-                    
-                    modeScaleText.classList.remove('active');
-                    modeRotateText.classList.remove('active');
-                    modeRollText.classList.remove('active');
-                }
-            });
-
-            const cameraUtils = new Camera(videoElement, {
-                onFrame: async () => { await hands.send({image: videoElement}); },
-                width: 640, height: 480
-            });
-
-            try {
-                await cameraUtils.start();
-                const loader = document.getElementById('loader-overlay');
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 800);
-            } catch (err) {
-                console.error(err);
-                statusText.innerText = "CAMERA ERROR";
-            }
-        }
-
-        window.onWindowResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        };
-
-        window.changeShape = (shape) => {
-            currentShape = shape;
-            targetPositions = getShapePositions(shape);
-            targetColors = getShapeColors(shape);
-
-            if (shape === 'saturn') {
-                const white = new THREE.Color(0xffffff);
-                new TWEEN.Tween(particles.material.color)
-                    .to({ r: 1, g: 1, b: 1 }, 500)
-                    .start();
-            } else {
-                new TWEEN.Tween(particles.material.color)
-                    .to({ r: userBaseColor.r, g: userBaseColor.g, b: userBaseColor.b }, 500)
-                    .start();
-            }
-
-            document.querySelectorAll('[data-shape]').forEach(btn => {
-                btn.classList.remove('active');
-                if(btn.dataset.shape === shape) btn.classList.add('active');
-            });
-        };
-
-        window.updateColor = (hex) => {
-            const c = new THREE.Color(hex);
-            userBaseColor = c; 
-
-            if(particles) {
-                if (currentShape !== 'saturn') {
-                    const initial = particles.material.color.clone();
-                    let alpha = 0;
-                    const anim = () => {
-                        alpha += 0.05;
-                        particles.material.color.lerpColors(initial, c, alpha);
-                        if (alpha < 1) requestAnimationFrame(anim);
-                    };
-                    anim();
-                }
-            }
-        };
-
-        window.toggleFullScreen = () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else if (document.exitFullscreen) document.exitFullscreen();
-        };
-
-        const TWEEN = {
-            Tween: function(obj) {
-                this.obj = obj;
-                this.target = {};
-                this.duration = 1000;
-                this.startTime = 0;
-                this.to = function(target, duration) { this.target = target; this.duration = duration; return this; };
-                this.start = function() { this.startTime = performance.now(); this.initial = { r: this.obj.r, g: this.obj.g, b: this.obj.b }; requestAnimationFrame(this.update.bind(this)); return this; };
-                this.update = function(time) {
-                    const elapsed = time - this.startTime;
-                    const progress = Math.min(elapsed / this.duration, 1);
-                    const ease = 1 - Math.pow(1 - progress, 3);
-                    this.obj.r = this.initial.r + (this.target.r - this.initial.r) * ease;
-                    this.obj.g = this.initial.g + (this.target.g - this.initial.g) * ease;
-                    this.obj.b = this.initial.b + (this.target.b - this.initial.b) * ease;
-                    if (progress < 1) { requestAnimationFrame(this.update.bind(this)); }
-                };
-            }
-        };
-
-        init();
-    </script>
+      });
+      saveData();
+      render();
+      toast(`已导入 ${added} 条`);
+    }catch(err){
+      toast('导入失败：文件格式不正确');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+function clearAllData(){
+  if(links.length === 0){ toast('没有数据可清空'); return; }
+  if(!confirm(`⚠️ 确定清空全部 ${links.length} 条地址吗？\n\n此操作不可撤销，建议先导出备份。`)) return;
+  if(!confirm('再次确认：真的要全部删除吗？')) return;
+  links = [];
+  saveData();
+  render();
+  toast('已清空全部数据');
+}
+
+/* ====== Toast ====== */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ====== Seed sample data (first run) ====== */
+function seedIfEmpty(){
+  if(localStorage.getItem(STORAGE_KEY)) return;
+  const now = Date.now();
+  links = [
+    {id:genId(), name:'GitHub', url:'https://github.com', type:'website', tags:'开发,代码托管', user:'', pass:'', desc:'全球最大代码托管平台', starred:true, createdAt:now-86400000, updatedAt:now-86400000},
+    {id:genId(), name:'MDN Web Docs', url:'https://developer.mozilla.org', type:'website', tags:'文档,前端', user:'', pass:'', desc:'Web 开发权威文档', starred:false, createdAt:now-172800000, updatedAt:now-172800000},
+    {id:genId(), name:'OpenAI API', url:'https://api.openai.com/v1', type:'api', tags:'AI,接口', user:'sk-xxx', pass:'', desc:'大模型接口端点', starred:true, createdAt:now-259200000, updatedAt:now-3600000},
+    {id:genId(), name:'生产服务器', url:'192.168.1.100', type:'server', tags:'生产环境,SSH', user:'root', pass:'••••••', desc:'主应用服务器，Ubuntu 22.04', starred:false, createdAt:now-345600000, updatedAt:now-345600000},
+  ];
+  saveData();
+}
+
+/* ====== Init ====== */
+seedIfEmpty();
+loadData();
+render();
+</script>
 </body>
 </html>
