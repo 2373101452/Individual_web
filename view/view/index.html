@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本地网址管理</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-header">
+  <button class="menu-toggle" onclick="toggleSidebar()" aria-label="打开菜单">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <div class="brand">
+    <div class="brand-left">
+      <div class="brand-logo">R</div>
+      <div>
+        <div class="brand-name">MH Exclusive</div>
+        <div class="brand-sub">网址管理</div>
+      </div>
+    </div>
+  </div>
+  <div class="notice-bar" title="郑重声明">
+    <div class="notice-track">
+      <span>本站所有数据均存在本地，没有数据服务器，丢失无法找回。</span>
+      <span>本站所有数据均存在本地，没有数据服务器，丢失无法找回。</span>
+    </div>
+  </div>
+  <button class="bell-btn" id="bellBtn" title="消息" aria-label="消息">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span class="bell-badge" id="bellBadge">0</span>
+  </button>
+  <div class="bell-panel" id="bellPanel">
+    <div class="bell-panel-head">
+      <h4>消息</h4>
+      <button class="bell-clear" onclick="clearBell()">清空</button>
+    </div>
+    <div class="bell-list" id="bellList"></div>
+  </div>
+</div>
+<div class="body-wrap">
+  <!-- ====== Sidebar ====== -->
+  <aside class="sidebar">
+    <div class="nav-section">
+      <div class="nav-title">视图</div>
+      <div class="nav-item active" data-filter="all">
+        <span><span class="nav-dot" style="background:#b08a6a"></span>全部地址</span>
+        <span class="nav-count" id="count-all">0</span>
+      </div>
+      <div class="nav-item" data-filter="starred">
+        <span><span class="nav-dot" style="background:#f2b134"></span>已收藏</span>
+        <span class="nav-count" id="count-starred">0</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-title">分类</div>
+      <div class="nav-item" data-filter="website">
+        <span><span class="nav-dot" style="background:#b9722a"></span>网站</span>
+        <span class="nav-count" id="count-website">0</span>
+      </div>
+      <div class="nav-item" data-filter="zzz">
+        <span><span class="nav-dot" style="background:#7b4fa0"></span>中转站</span>
+        <span class="nav-count" id="count-zzz">0</span>
+      </div>
+      <div class="nav-item" data-filter="AI">
+        <span><span class="nav-dot" style="background:#3d8c84"></span>AI相关</span>
+        <span class="nav-count" id="count-AI">0</span>
+      </div>
+      <div class="nav-item" data-filter="tool">
+        <span><span class="nav-dot" style="background:#b8486e"></span>工具</span>
+        <span class="nav-count" id="count-tool">0</span>
+      </div>
+      <div class="nav-item" data-filter="database">
+        <span><span class="nav-dot" style="background:#5f7d3f"></span>技术栈</span>
+        <span class="nav-count" id="count-database">0</span>
+      </div>
+      <div class="nav-item" data-filter="api">
+        <span><span class="nav-dot" style="background:#c25b3e"></span>API 接口</span>
+        <span class="nav-count" id="count-api">0</span>
+      </div>
+      <div class="nav-item" data-filter="server">
+        <span><span class="nav-dot" style="background:#a9651f"></span>服务器</span>
+        <span class="nav-count" id="count-server">0</span>
+      </div>
+      <div class="nav-item" data-filter="other">
+        <span><span class="nav-dot" style="background:#8a7560"></span>其他</span>
+        <span class="nav-count" id="count-other">0</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-title">数据</div>
+      <div class="nav-item" onclick="exportData()">
+        <span><span class="nav-dot" style="background:#5f7d3f"></span>导出 JSON</span>
+      </div>
+      <div class="nav-item" onclick="exportDataSafe()">
+        <span><span class="nav-dot" style="background:#f3b25f"></span>导出 JSON(不含账号)</span>
+      </div>
+      <div class="nav-item" onclick="document.getElementById('import-file').click()">
+        <span><span class="nav-dot" style="background:#c9734a"></span>导入 JSON</span>
+      </div>
+      <div class="nav-item" onclick="clearAllData()" style="color:var(--danger)">
+        <span><span class="nav-dot" style="background:var(--danger)"></span>清空全部</span>
+      </div>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none">
+  </aside>
+
+  <!-- ====== Main ====== -->
+  <main class="main">
+    <div class="content">
+      <div class="content-sticky">
+        <div class="content-header">
+          <div class="header-row">
+            <div>
+              <div class="content-title" id="view-title">全部地址</div>
+              <div class="content-meta" id="view-meta">管理你的网络地址收藏</div>
+            </div>
+            <button class="btn btn-primary header-add-btn" onclick="openModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              添加地址
+            </button>
+          </div>
+        </div>
+        <div class="content-toolbar">
+          <div class="search">
+            <span class="search-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input type="text" id="search-input" placeholder="搜索名称、网址或标签...">
+          </div>
+          <button class="btn btn-primary btn-add" onclick="openModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            添加地址
+          </button>
+          <button class="btn btn-ghost" onclick="openBatchModal()" title="批量粘贴并一次性新增多个地址">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4.5" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+            批量新增
+          </button>
+        </div>
+      </div>
+      <div id="list-container"></div>
+    </div>
+  </main>
+</div>
+
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- ====== Modal ====== -->
+<div class="modal-mask" id="modal-mask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">添加地址</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="link-form" onsubmit="return saveLink(event)">
+        <input type="hidden" id="link-id">
+        <div class="form-row">
+          <label class="form-label">名称 <span class="req">*</span></label>
+          <input type="text" id="link-name" class="form-control" placeholder="例如：GitHub" required>
+        </div>
+        <div class="form-row">
+          <label class="form-label">网址 <span class="req">*</span></label>
+          <input type="text" id="link-url" class="form-control" placeholder="https://github.com" required>
+        </div>
+        <div class="form-row">
+          <label class="form-label">类型</label>
+          <div class="type-picker" id="type-picker">
+            <span class="type-opt active" data-type="website">网站</span>
+            <span class="type-opt" data-type="zzz">中转站</span>
+            <span class="type-opt" data-type="AI">AI相关</span>
+            <span class="type-opt" data-type="tool">工具</span>
+            <span class="type-opt" data-type="database">技术栈</span>
+            <span class="type-opt" data-type="api">API 接口</span>
+            <span class="type-opt" data-type="server">服务器</span>
+            <span class="type-opt" data-type="other">其他</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">标签（逗号分隔）</label>
+          <input type="text" id="link-tags" class="form-control" placeholder="开发, 文档, 常用">
+        </div>
+        <div class="form-row two">
+          <div>
+            <label class="form-label">账号</label>
+            <input type="text" id="link-user" class="form-control" placeholder="可选">
+          </div>
+          <div>
+            <label class="form-label">密码</label>
+            <input type="text" id="link-pass" class="form-control" placeholder="可选">
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">备注</label>
+          <textarea id="link-desc" class="form-control" placeholder="用途、说明、注意事项..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="document.getElementById('link-form').requestSubmit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Batch Add Modal ====== -->
+<div class="modal-mask" id="batch-mask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">批量新增</div>
+      <button class="modal-close" onclick="closeBatchModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="batch-tip">在表格中逐行填写地址信息，可点「添加一行」继续补充，或从下方示例开始。类型用下拉选择。</p>
+      <div class="batch-table-wrap">
+        <table class="batch-table">
+          <colgroup>
+            <col><col class="col-url"><col class="col-type"><col><col><col><col><col>
+          </colgroup>
+          <thead>
+            <tr><th>名称 *</th><th>网址 *</th><th>类型</th><th>标签</th><th>账号</th><th>密码</th><th>备注</th><th></th></tr>
+          </thead>
+          <tbody id="batch-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-outline batch-add-row" type="button" onclick="addBatchRow()">＋ 添加一行</button>
+      <div id="batch-preview" class="batch-preview"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeBatchModal()">取消</button>
+      <button class="btn btn-primary" onclick="doBatchAdd()">批量添加 <span id="batch-count"></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+<script src="js/batch.js"></script>
+<script src="js/notifications.js"></script>
+</body>
+</html>
