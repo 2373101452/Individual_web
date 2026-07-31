@@ -26,6 +26,12 @@ function loadData(){
     const raw = localStorage.getItem(STORAGE_KEY);
     links = raw ? JSON.parse(raw) : [];
   }catch(e){ links = []; }
+  links.forEach(function(l){
+    if(!l.creds){
+      l.creds = [];
+      if(l.user || l.pass) l.creds.push({user:l.user||'', pass:l.pass||''});
+    }
+  });
 }
 function saveData(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
@@ -120,6 +126,9 @@ function renderCard(l){
           '<div class="card-name">'+escapeHtml(l.name)+'</div>',
           '<div class="card-url"><a href="'+escapeHtml(normalizeUrl(l.url))+'" target="_blank" rel="noopener">'+escapeHtml(getDomain(l.url))+'</a></div>',
         '</div>',
+        '<button class="del-btn" onclick="deleteLink(\''+l.id+'\')" title="删除">',
+          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
+        '</button>',
         '<button class="star-btn '+(l.starred?'active':'')+'" onclick="toggleStar(\''+l.id+'\')" title="'+(l.starred?'取消收藏':'收藏')+'">',
           (l.starred ? '★' : '☆'),
         '</button>',
@@ -131,8 +140,7 @@ function renderCard(l){
       '</div>',
       '<div class="card-foot">',
         '<div class="card-actions">',
-          '<button class="text-btn danger" onclick="deleteLink(\''+l.id+'\')" title="删除">删除</button>',
-          (l.user||l.pass ? '<button class="text-btn" onclick="copyCreds(\''+l.id+'\')" title="复制账号信息">复制账号</button>' : ''),
+          (l.creds&&l.creds.length ? '<button class="text-btn" onclick="showCreds(\''+l.id+'\')" title="查看账号">查看账号('+l.creds.length+')</button>' : ''),
           '<button class="text-btn" onclick="editLink(\''+l.id+'\')" title="编辑此地址">编辑</button>',
           '<button class="text-btn" onclick="copyUrl(\''+l.id+'\')" title="复制网址">复制网址</button>',
         '</div>',
@@ -186,6 +194,7 @@ if(sidebarEl){
 /* ====== Modal ====== */
 function openModal(id){
   document.getElementById('modal-mask').classList.add('show');
+  document.getElementById('creds-extra').innerHTML = '';
   if(id){
     var l = links.find(function(x){return x.id===id;});
     document.getElementById('modal-title').textContent = '编辑地址';
@@ -193,14 +202,24 @@ function openModal(id){
     document.getElementById('link-name').value = l.name||'';
     document.getElementById('link-url').value = l.url||'';
     document.getElementById('link-tags').value = l.tags||'';
-    document.getElementById('link-user').value = l.user||'';
-    document.getElementById('link-pass').value = l.pass||'';
     document.getElementById('link-desc').value = l.desc||'';
+    if(l.creds && l.creds.length>0){
+      document.getElementById('link-user').value = l.creds[0].user||'';
+      document.getElementById('link-pass').value = l.creds[0].pass||'';
+      for(var i=1;i<l.creds.length;i++){
+        addCredsRow(l.creds[i].user, l.creds[i].pass);
+      }
+    } else {
+      document.getElementById('link-user').value = l.user||'';
+      document.getElementById('link-pass').value = l.pass||'';
+    }
     editingType = l.type || 'website';
   } else {
     document.getElementById('modal-title').textContent = '添加地址';
     document.getElementById('link-form').reset();
     document.getElementById('link-id').value = '';
+    document.getElementById('link-user').value = '';
+    document.getElementById('link-pass').value = '';
     editingType = 'website';
   }
   syncTypePicker();
@@ -213,7 +232,7 @@ document.getElementById('modal-mask').addEventListener('click', function(e){
   if(e.target.id === 'modal-mask') closeModal();
 });
 document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape'){ closeModal(); closeBatchModal(); }
+  if(e.key === 'Escape'){ closeModal(); closeBatchModal(); closeCredsModal(); }
 });
 
 /* type picker */
@@ -233,13 +252,22 @@ function syncTypePicker(){
 function saveLink(e){
   e.preventDefault();
   var id = document.getElementById('link-id').value;
+  var creds = [];
+  var u = document.getElementById('link-user').value.trim();
+  var p = document.getElementById('link-pass').value.trim();
+  if(u || p) creds.push({user:u, pass:p});
+  var extraRows = document.querySelectorAll('#creds-extra .creds-extra-row');
+  extraRows.forEach(function(row){
+    var eu = row.querySelector('.cred-s-user').value.trim();
+    var ep = row.querySelector('.cred-s-pass').value.trim();
+    if(eu || ep) creds.push({user:eu, pass:ep});
+  });
   var data = {
     name: document.getElementById('link-name').value.trim(),
     url: document.getElementById('link-url').value.trim(),
     type: editingType,
     tags: document.getElementById('link-tags').value.trim(),
-    user: document.getElementById('link-user').value.trim(),
-    pass: document.getElementById('link-pass').value.trim(),
+    creds: creds,
     desc: document.getElementById('link-desc').value.trim(),
   };
   if(!data.name || !data.url){
@@ -261,6 +289,16 @@ function saveLink(e){
 }
 
 function editLink(id){ openModal(id); }
+
+function addCredsRow(u, p){
+  var d = document.getElementById('creds-extra');
+  var div = document.createElement('div');
+  div.className = 'creds-extra-row';
+  div.innerHTML = '<input class="cred-s-user form-control" value="'+(u||'')+'" placeholder="账号">'+
+    '<input class="cred-s-pass form-control" value="'+(p||'')+'" placeholder="密码">'+
+    '<button class="btn btn-sm btn-ghost" type="button" onclick="this.parentElement.remove()">×</button>';
+  d.appendChild(div);
+}
 
 function deleteLink(id){
   var l = links.find(function(x){return x.id===id;});
@@ -288,12 +326,46 @@ function copyUrl(id){
 }
 
 function copyCreds(id){
+  showCreds(id);
+}
+
+function showCreds(id){
   var l = links.find(function(x){return x.id===id;});
-  var text = (l.user ? '账号：'+l.user+'\n' : '') + (l.pass ? '密码：'+l.pass : '');
-  navigator.clipboard.writeText(text).then(function(){
-    toast('账号信息已复制');
+  if(!l) return;
+  var body = document.getElementById('creds-body');
+  var html = '';
+  var list = l.creds || [];
+  if(l.user && (!list || !list.length)){ list = [{user:l.user||'', pass:l.pass||''}]; }
+  list.forEach(function(c, i){
+    var escU = escapeHtml(c.user||'');
+    var escP = escapeHtml(c.pass||'');
+    html+='<div class="creds-group">';
+    if(list.length>1){ html+='<div class="creds-group-title">账号 '+(i+1)+'</div>'; }
+    html+='<div class="creds-pair">';
+    html+='<div><div class="creds-label">账号</div><div class="creds-val" onclick="copyField(this,\''+escU.replace(/'/g,"\\'")+'\')"><span>'+(escU||'—')+'</span><span class="copy-hint">点击复制</span></div></div>';
+    html+='<div><div class="creds-label">密码</div><div class="creds-val" onclick="copyField(this,\''+escP.replace(/'/g,"\\'")+'\')"><span>'+(escP||'—')+'</span><span class="copy-hint">点击复制</span></div></div>';
+    html+='</div></div>';
+  });
+  if(!html){ html='<div style="text-align:center;color:var(--text-muted);padding:20px">无账号信息</div>'; }
+  body.innerHTML = html;
+  document.getElementById('creds-mask').classList.add('show');
+}
+
+function closeCredsModal(){
+  document.getElementById('creds-mask').classList.remove('show');
+}
+
+function copyField(el, val){
+  navigator.clipboard.writeText(val).then(function(){
+    el.classList.add('copied');
+    setTimeout(function(){el.classList.remove('copied');}, 1200);
+    toast('已复制');
   }).catch(function(){toast('复制失败');});
 }
+
+document.getElementById('creds-mask').addEventListener('click', function(e){
+  if(e.target.id === 'creds-mask') closeCredsModal();
+});
 
 /* ====== Import / Export ====== */
 function exportData(){
@@ -341,11 +413,13 @@ document.getElementById('import-file').addEventListener('change', function(e){
       var added = 0;
       data.forEach(function(item){
         if(item.name && item.url){
+          var c = item.creds || [];
+          if(!item.creds && (item.user || item.pass)) c = [{user:item.user||'', pass:item.pass||''}];
           links.unshift({
             id:genId(),
             name:item.name, url:item.url,
             type:item.type||'other',
-            tags:item.tags||'', user:item.user||'', pass:item.pass||'', desc:item.desc||'',
+            tags:item.tags||'', creds:c, desc:item.desc||'',
             starred:item.starred||false,
             createdAt:item.createdAt||Date.now(),
             updatedAt:Date.now()
@@ -389,8 +463,10 @@ function seedIfEmpty(){
   if(localStorage.getItem(STORAGE_KEY)) return;
   var now = Date.now();
   links = [
-    {id:genId(), name:'GitHub', url:'https://github.com', type:'website', tags:'开发,代码托管', user:'', pass:'', desc:'全球最大代码托管平台', starred:true, createdAt:now-86400000, updatedAt:now-86400000},
-    {id:genId(), name:'OpenAI API', url:'https://api.openai.com/v1', type:'api', tags:'AI,接口', user:'sk-xxx', pass:'', desc:'大模型接口端点', starred:true, createdAt:now-259200000, updatedAt:now-3600000},
+    {id:genId(), name:'GitHub', url:'https://github.com', type:'website', tags:'开发,代码托管', creds:[], desc:'全球最大代码托管平台', starred:true, createdAt:now-86400000, updatedAt:now-86400000},
+    {id:genId(), name:'OpenAI API', url:'https://api.openai.com/v1', type:'api', tags:'AI,接口', creds:[{user:'sk-xxx', pass:''}], desc:'大模型接口端点', starred:true, createdAt:now-259200000, updatedAt:now-3600000},
+    {id:genId(), name:'MDN Web Docs', url:'https://developer.mozilla.org', type:'website', tags:'文档,前端', creds:[], desc:'Web 开发权威文档', starred:false, createdAt:now-172800000, updatedAt:now-172800000},
+    {id:genId(), name:'生产服务器', url:'192.168.1.100', type:'server', tags:'生产环境,SSH', creds:[{user:'root', pass:'••••••'},{user:'admin', pass:'admin123'}], desc:'主应用服务器，Ubuntu 22.04', starred:false, createdAt:now-345600000, updatedAt:now-345600000},
   ];
   saveData();
 }

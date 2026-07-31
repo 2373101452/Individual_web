@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>本地网址管理</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23e78dff'/%3E%3Cstop offset='100%25' style='stop-color:%23f4e44f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='30' fill='none' stroke='%23fff' stroke-width='2' opacity='.3'/%3E%3Ccircle cx='22' cy='26' r='4' fill='%23fff'/%3E%3Ccircle cx='42' cy='26' r='4' fill='%23fff'/%3E%3Ccircle cx='23' cy='25' r='1.5' fill='%234b3a2c'/%3E%3Ccircle cx='43' cy='25' r='1.5' fill='%234b3a2c'/%3E%3Cpath d='M22 40 Q32 50 42 40' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -191,6 +192,11 @@
           </div>
         </div>
         <div class="form-row">
+          <label class="form-label">更多账号</label>
+          <div id="creds-extra"></div>
+          <button class="btn btn-sm btn-outline" style="margin-top:8px" type="button" onclick="addCredsRow()">+ 添加账号</button>
+        </div>
+        <div class="form-row">
           <label class="form-label">备注</label>
           <textarea id="link-desc" class="form-control" placeholder="用途、说明、注意事项..."></textarea>
         </div>
@@ -229,6 +235,20 @@
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeBatchModal()">取消</button>
       <button class="btn btn-primary" onclick="doBatchAdd()">批量添加 <span id="batch-count"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Creds View Modal ====== -->
+<div class="modal-mask" id="creds-mask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">账号信息</div>
+      <button class="modal-close" onclick="closeCredsModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="creds-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCredsModal()">关闭</button>
     </div>
   </div>
 </div>
