@@ -50,6 +50,65 @@ function normalizeUrl(url){
   }
   return url;
 }
+function getUrlKey(url){
+  try{
+    var parsed = new URL(normalizeUrl(String(url||'')));
+    parsed.hash = '';
+    parsed.hostname = parsed.hostname.toLowerCase();
+    var path = parsed.pathname.replace(/\/+$/, '') || '/';
+    parsed.pathname = path;
+    return parsed.toString().replace(/\/$/, '');
+  }catch(e){
+    return normalizeUrl(String(url||'')).replace(/\/+$/, '').toLowerCase();
+  }
+}
+function normalizeTags(tags){
+  var values = Array.isArray(tags) ? tags : String(tags||'').split(/[，,]/);
+  var seen = {};
+  var result = [];
+  values.forEach(function(value){
+    String(value||'').split(/[，,]/).forEach(function(part){
+      var tag = part.trim();
+      var key = tag.toLowerCase();
+      if(tag && !seen[key]){
+        seen[key] = true;
+        result.push(tag);
+      }
+    });
+  });
+  return result.join(',');
+}
+function normalizeCreds(creds, legacyUser, legacyPass){
+  var values = Array.isArray(creds) ? creds : [];
+  if(!values.length && (legacyUser || legacyPass)){
+    values = [{user:legacyUser||'', pass:legacyPass||''}];
+  }
+  var result = [];
+  var indexes = {};
+  values.forEach(function(value){
+    if(!value || typeof value !== 'object') return;
+    var user = String(value.user||'').trim();
+    var pass = String(value.pass||'').trim();
+    if(!user && !pass) return;
+    var key = user ? 'user:'+user.toLowerCase() : 'pass:'+pass;
+    if(indexes[key] === undefined){
+      indexes[key] = result.length;
+      result.push({user:user, pass:pass});
+    } else if(!result[indexes[key]].pass && pass){
+      result[indexes[key]].pass = pass;
+    }
+  });
+  return result;
+}
+function mergeTags(current, incoming){
+  var combined = [];
+  if(current) combined.push(current);
+  if(incoming) combined.push(incoming);
+  return normalizeTags(combined);
+}
+function mergeCreds(current, incoming){
+  return normalizeCreds((current||[]).concat(incoming||[]));
+}
 function getDomain(url){
   try{ return new URL(normalizeUrl(url)).hostname; }catch(e){ return url; }
 }
@@ -163,9 +222,31 @@ function updateCounts(){
 document.querySelectorAll('.nav-item[data-filter]').forEach(function(item){
   item.addEventListener('click', function(){
     document.querySelectorAll('.nav-item[data-filter]').forEach(function(i){i.classList.remove('active');});
+    document.querySelectorAll('.nav-item[data-game]').forEach(function(i){i.classList.remove('active');});
     item.classList.add('active');
     currentFilter = item.dataset.filter;
+    currentGame = '';
+    document.querySelector('.main').classList.remove('game-mode');
+    document.getElementById('game-container').style.display = 'none';
+    document.getElementById('list-container').style.display = '';
     render();
+  });
+});
+
+/* ====== Game Navigation ====== */
+var currentGame = '';
+document.querySelectorAll('.nav-item[data-game]').forEach(function(item){
+  item.addEventListener('click', function(){
+    document.querySelectorAll('.nav-item[data-filter]').forEach(function(i){i.classList.remove('active');});
+    document.querySelectorAll('.nav-item[data-game]').forEach(function(i){i.classList.remove('active');});
+    item.classList.add('active');
+    currentGame = item.dataset.game;
+    currentFilter = '';
+    document.querySelector('.main').classList.add('game-mode');
+    document.getElementById('list-container').style.display = 'none';
+    document.getElementById('game-container').style.display = '';
+    if(currentGame === 'dice'){ initDiceGame(); }
+    else if(currentGame === 'gomoku'){ initGomokuGame(); }
   });
 });
 document.getElementById('search-input').addEventListener('input', function(e){
@@ -368,6 +449,62 @@ document.getElementById('creds-mask').addEventListener('click', function(e){
 });
 
 /* ====== Import / Export ====== */
+function importLinks(data){
+  var added = 0;
+  var merged = 0;
+  var skipped = 0;
+  var urlIndex = {};
+  links.forEach(function(link){
+    var key = getUrlKey(link.url);
+    if(key && !urlIndex[key]) urlIndex[key] = link;
+  });
+  data.forEach(function(item){
+    if(!item || !item.name || !item.url){
+      skipped++;
+      return;
+    }
+    var key = getUrlKey(item.url);
+    if(!key){
+      skipped++;
+      return;
+    }
+    var incomingTags = normalizeTags(item.tags);
+    var incomingCreds = normalizeCreds(item.creds, item.user, item.pass);
+    var existing = urlIndex[key];
+    if(existing){
+      var currentTags = normalizeTags(existing.tags);
+      var currentCreds = normalizeCreds(existing.creds, existing.user, existing.pass);
+      var nextTags = mergeTags(currentTags, incomingTags);
+      var nextCreds = mergeCreds(currentCreds, incomingCreds);
+      var changed = nextTags !== currentTags || JSON.stringify(nextCreds) !== JSON.stringify(currentCreds);
+      if(!existing.desc && item.desc){ existing.desc = String(item.desc); changed = true; }
+      if(item.starred && !existing.starred){ existing.starred = true; changed = true; }
+      existing.tags = nextTags;
+      existing.creds = nextCreds;
+      if(changed){
+        existing.updatedAt = Date.now();
+        merged++;
+      } else {
+        skipped++;
+      }
+      return;
+    }
+    var link = {
+      id:genId(),
+      name:String(item.name), url:String(item.url),
+      type:TYPE_LABELS[item.type] ? item.type : 'other',
+      tags:incomingTags, creds:incomingCreds, desc:String(item.desc||''),
+      starred:Boolean(item.starred),
+      createdAt:item.createdAt||Date.now(),
+      updatedAt:Date.now()
+    };
+    links.unshift(link);
+    urlIndex[key] = link;
+    added++;
+  });
+  return {added:added, merged:merged, skipped:skipped};
+}
+
 function exportData(){
   if(links.length === 0){ toast('暂无数据可导出'); return; }
   var name = fileName();
@@ -410,26 +547,13 @@ document.getElementById('import-file').addEventListener('change', function(e){
     try{
       var data = JSON.parse(ev.target.result);
       if(!Array.isArray(data)) throw new Error();
-      var added = 0;
-      data.forEach(function(item){
-        if(item.name && item.url){
-          var c = item.creds || [];
-          if(!item.creds && (item.user || item.pass)) c = [{user:item.user||'', pass:item.pass||''}];
-          links.unshift({
-            id:genId(),
-            name:item.name, url:item.url,
-            type:item.type||'other',
-            tags:item.tags||'', creds:c, desc:item.desc||'',
-            starred:item.starred||false,
-            createdAt:item.createdAt||Date.now(),
-            updatedAt:Date.now()
-          });
-          added++;
-        }
-      });
+      var importResult = importLinks(data);
       saveData();
       render();
-      toast('已导入 '+added+' 条');
+      var result = ['新增 '+importResult.added+' 条'];
+      if(importResult.merged) result.push('合并 '+importResult.merged+' 条');
+      if(importResult.skipped) result.push('跳过 '+importResult.skipped+' 条');
+      toast('导入完成：'+result.join('，'));
     }catch(err){
       toast('导入失败：文件格式不正确');
     }
@@ -470,6 +594,28 @@ function seedIfEmpty(){
   ];
   saveData();
 }
+
+/* ====== Sidebar Collapse ====== */
+(function initSidebarCollapse(){
+  var COLLAPSE_KEY = 'sidebar_collapse_v1';
+  var collapsed = {};
+  try{ collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }catch(e){}
+
+  var sections = document.querySelectorAll('.nav-section');
+  sections.forEach(function(sec, i){
+    var title = sec.querySelector('.nav-title');
+    if(!title) return;
+    var id = title.textContent.trim() || ('sec-'+i);
+    // restore
+    if(collapsed[id]) sec.classList.add('collapsed');
+    // toggle
+    title.addEventListener('click', function(){
+      sec.classList.toggle('collapsed');
+      collapsed[id] = sec.classList.contains('collapsed');
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
+    });
+  });
+})();
 
 /* ====== Init ====== */
 seedIfEmpty();

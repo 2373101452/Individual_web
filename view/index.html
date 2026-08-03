@@ -89,6 +89,15 @@
       </div>
     </div>
     <div class="nav-section">
+      <div class="nav-title">休闲</div>
+      <div class="nav-item" data-game="dice">
+        <span><span class="nav-dot" style="background:#e74c3c"></span>猜大小</span>
+      </div>
+      <div class="nav-item" data-game="gomoku">
+        <span><span class="nav-dot" style="background:#3498db"></span>五子棋</span>
+      </div>
+    </div>
+    <div class="nav-section">
       <div class="nav-title">数据</div>
       <div class="nav-item" onclick="exportData()">
         <span><span class="nav-dot" style="background:#5f7d3f"></span>导出 JSON</span>
@@ -140,6 +149,8 @@
         </div>
       </div>
       <div id="list-container"></div>
+      <!-- ====== Game Views ====== -->
+      <div id="game-container" style="display:none"></div>
     </div>
   </main>
 </div>
@@ -256,6 +267,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="js/app.js"></script>
+<script src="js/games.js"></script>
 <script src="js/batch.js"></script>
 <script src="js/notifications.js"></script>
 </body>
