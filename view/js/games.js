@@ -83,10 +83,9 @@ function initDiceGame(){
       '</div>',
       // 游戏结束遮罩
       '<div class="dice-overlay" id="diceOverlay" style="display:none">',
-        '<div class="dice-overlay-text">人生已重开<br>不要再赌了</div>',
+        '<div class="dice-overlay-text">人生已<div  onclick="diceRestart()" class="dice-overlay-div">重开</div><br>不要再赌了</div>',
       '</div>',
-      // 右下角悬浮重开按钮
-      '<button class="dice-corner-restart" id="btnDiceCornerRestart" onclick="diceRestart()" title="重开一局">重开</button>',
+      '<button class="dice-corner-restart" id="btnDiceCornerRestart" onclick="diceRestart()">重开</button>',
     '</div>'
   ].join('');
   renderDiceHistory();
@@ -134,9 +133,6 @@ function diceQuit(){
   // 跳了 — 显示游戏结束遮罩
   document.getElementById('diceOverlay').style.display = '';
   document.getElementById('btnDiceQuit').style.display = 'none';
-  // 右下角重开始终可见
-  var cr = document.getElementById('btnDiceCornerRestart');
-  if(cr) cr.style.opacity = '';
 }
 
 function dicePick(choice){

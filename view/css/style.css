@@ -710,7 +710,7 @@ select.bt-input{cursor:pointer;padding-right:28px}
 }
 .btn-quit:hover{background:var(--danger);color:#fff;transform:translateY(-1px);box-shadow:0 6px 18px rgba(217,102,90,.35)}
 
-/* Corner restart */
+/* Corner restart — desktop only */
 .dice-corner-restart{
   position:fixed;bottom:32px;right:32px;z-index:50;
   padding:8px 18px;border-radius:var(--radius-s);
@@ -724,7 +724,14 @@ select.bt-input{cursor:pointer;padding-right:28px}
   box-shadow:var(--shadow-sm);
 }
 
-/* Game over overlay */
+/* Game over overlay button — mobile only */
+.dice-overlay-btn{
+  display:none;
+  background:none;border:1px solid var(--text-muted);color:var(--text-muted);
+  padding:8px 24px;border-radius:var(--radius-pill);font-size:18px;font-weight:700;
+  cursor:pointer;font-family:inherit;letter-spacing:1px;transition:.16s;
+}
+.dice-overlay-btn:hover{background:var(--surface);color:var(--text);border-color:var(--text)}
 .game-dice{position:relative}
 .dice-overlay{
   position:absolute;inset:0;z-index:10;
@@ -735,6 +742,9 @@ select.bt-input{cursor:pointer;padding-right:28px}
 .dice-overlay-text{
   font-size:28px;font-weight:800;color:var(--text-muted);
   text-align:center;line-height:2;letter-spacing:1px;
+}
+.dice-overlay-div{
+  display: inline-block;
 }
 
 /* ---------- Welfare ---------- */
@@ -812,8 +822,10 @@ select.bt-input{cursor:pointer;padding-right:28px}
   .dice-h-choice{font-size:12px}
   .dice-h-change{font-size:14px}
   .dice-history-list{max-height:240px}
-  .dice-corner-restart{position:fixed;bottom:20px;right:16px;z-index:50;padding:6px 16px;font-size:14px;border-radius:var(--radius-s);opacity:0}
+  .dice-overlay{flex-direction:column;gap:20px}
   .dice-overlay-text{font-size:22px}
+  .dice-overlay-btn{display:inline-block;font-size:16px;padding:6px 20px}
+  .dice-corner-restart{display:none}
   /* Hide game-mode left padding */
   .main.game-mode .content{padding-left:0}
   .main.game-mode #game-container{width:100%}
