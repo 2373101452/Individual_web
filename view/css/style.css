@@ -768,7 +768,7 @@ select.bt-input{cursor:pointer;padding-right:28px}
   .dice-h-choice{font-size:12px}
   .dice-h-change{font-size:14px}
   .dice-history-list{max-height:240px}
-  .dice-corner-restart{bottom:20px;right:16px;padding:6px 14px;font-size:12px}
+  .dice-corner-restart{position:absolute;bottom:auto;top:4px;left:50%;transform:translateX(-50%);padding:6px 16px;font-size:14px;border-radius:var(--radius-s);z-index:60;opacity:0}
   .dice-overlay-text{font-size:22px}
 
   /* Hide game-mode left padding */
