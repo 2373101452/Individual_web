@@ -5,6 +5,7 @@ var notifications = [
   {icon:'⭐', title:'收藏分类：点击卡片上的星标标记常用项，左侧导航可切换分类视图', time:'使用说明', read:false},
   {icon:'📦', title:'导入导出：右上角可将当前数据导出为 JSON 备份，也可导入历史备份', time:'使用说明', read:false},
   {icon:'🔒', title:'本地存储：所有数据仅保存在本机浏览器，无任何网络请求，清除浏览器数据会丢失', time:'使用说明', read:false},
+  {icon:'🎲', title:'猜大小：纯读博', time:'使用说明', read:false},
 ];
 
 function renderBell(){

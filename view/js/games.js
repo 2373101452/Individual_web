@@ -300,3 +300,52 @@ function formatDiceTime(ts){
   var pad = function(n){ return String(n).padStart(2,'0'); };
   return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
 }
+
+/* ==============================
+   每日福利
+   ============================== */
+function initWelfarePage(){
+  // 读取余额（与猜大小共享）
+  try{
+    var v = parseInt(localStorage.getItem('dice_balance_v1'));
+    if(!isNaN(v) && v >= 0) diceBalance = v;
+    else diceBalance = 0;
+  }catch(e){ diceBalance = 0; }
+
+  var signedToday = isSignedToday();
+  var todayReward = localStorage.getItem('welfare_today_reward') || '';
+  var container = document.getElementById('game-container');
+  container.innerHTML = [
+    '<div class="game-wrap game-welfare">',
+      '<div class="welfare-card">',
+        '<div class="welfare-icon">🎁</div>',
+        '<h2 class="welfare-title">每日福利</h2>',
+        '<div class="welfare-balance">当前余额：<strong id="welfareBalance">'+diceBalance+'</strong> 币</div>',
+        '<div class="welfare-desc">每日签到可随机领取 <em>100 ~ 200</em> 币</div>',
+        signedToday
+          ? '<div class="welfare-signed">今日已签到 ✓'+(todayReward ? '<br><small>+'+todayReward+' 币</small>' : '')+'</div>'
+          : '<button class="welfare-btn" onclick="doSignIn()">签到领取</button>',
+        '<p class="welfare-hint">签到奖励直接存入猜大小余额，每日仅限一次</p>',
+      '</div>',
+    '</div>'
+  ].join('');
+}
+
+function isSignedToday(){
+  var last = localStorage.getItem('welfare_sign_date');
+  if(!last) return false;
+  var today = new Date().toDateString();
+  return last === today;
+}
+
+function doSignIn(){
+  if(isSignedToday()) return;
+
+  var reward = Math.floor(Math.random() * 101) + 100; // 100-200
+  diceBalance += reward;
+  localStorage.setItem('welfare_sign_date', new Date().toDateString());
+  localStorage.setItem('welfare_today_reward', reward);
+  saveDiceBalance();
+  // 重绘页面
+  initWelfarePage();
+}

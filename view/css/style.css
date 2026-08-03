@@ -527,9 +527,8 @@ select.bt-input{cursor:pointer;padding-right:28px}
   max-width:780px;margin:0;padding:24px 0 40px;
 }
 
-/* Left-align & vertically center game in content */
+/* Left-align game in content */
 .main.game-mode .content{
-  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
   padding-left:24px;
 }
 .main.game-mode #game-container{width:100%}
@@ -738,9 +737,54 @@ select.bt-input{cursor:pointer;padding-right:28px}
   text-align:center;line-height:2;letter-spacing:1px;
 }
 
+/* ---------- Welfare ---------- */
+.game-welfare{
+  display:flex;align-items:center;justify-content:center;min-height:100%;
+}
+.welfare-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:40px 32px;text-align:center;
+  max-width:400px;width:100%;
+  box-shadow:var(--shadow-sm);
+}
+.welfare-icon{font-size:56px;margin-bottom:12px}
+.welfare-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:12px}
+.welfare-balance{font-size:16px;color:var(--text-muted);margin-bottom:8px}
+.welfare-balance strong{color:var(--brand-d);font-size:20px}
+.welfare-desc{font-size:14px;color:var(--text-muted);margin-bottom:24px}
+.welfare-desc em{color:var(--brand-d);font-weight:700;font-style:normal}
+.welfare-btn{
+  display:inline-block;padding:14px 48px;border-radius:var(--radius-pill);
+  background:var(--grad);color:#fff;border:none;font-size:18px;font-weight:800;
+  cursor:pointer;box-shadow:var(--grad-shadow);transition:.16s;font-family:inherit;
+}
+.welfare-btn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(190,130,235,.45)}
+.welfare-btn:active{transform:scale(.96)}
+.welfare-signed{
+  font-size:18px;font-weight:700;color:var(--text-muted);
+  padding:14px 32px;background:var(--surface-2);
+  border-radius:var(--radius-pill);display:inline-block;
+}
+.welfare-signed small{display:block;font-size:14px;color:var(--brand-d);margin-top:4px}
+.welfare-hint{font-size:12px;color:var(--text-muted);margin-top:20px;opacity:.7}
+
+@media(max-width:768px){
+  .welfare-card{padding:32px 20px;max-width:100%}
+  .welfare-icon{font-size:44px}
+  .welfare-title{font-size:18px}
+  .welfare-btn{font-size:16px;padding:12px 36px}
+}
+
 @media(max-width:768px){
   /* Dice mobile */
-  .game-wrap{max-width:100%;padding:12px 0 20px}
+  .game-wrap{max-width:100%;padding:0 0 20px}
+  /* Sticky game header */
+  .game-header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(255,253,249,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    padding:10px 16px;margin:0;display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--border);
+  }
   .game-title{font-size:16px}
   .dice-balance{font-size:14px;padding:6px 14px}
   .dice-bal-num{font-size:18px}
@@ -768,10 +812,9 @@ select.bt-input{cursor:pointer;padding-right:28px}
   .dice-h-choice{font-size:12px}
   .dice-h-change{font-size:14px}
   .dice-history-list{max-height:240px}
-  .dice-corner-restart{position:absolute;bottom:auto;top:4px;left:50%;transform:translateX(-50%);padding:6px 16px;font-size:14px;border-radius:var(--radius-s);z-index:60;opacity:0}
+  .dice-corner-restart{position:fixed;bottom:20px;right:16px;z-index:50;padding:6px 16px;font-size:14px;border-radius:var(--radius-s);opacity:0}
   .dice-overlay-text{font-size:22px}
-
   /* Hide game-mode left padding */
-  .main.game-mode .content{padding-left:0;align-items:stretch}
+  .main.game-mode .content{padding-left:0}
   .main.game-mode #game-container{width:100%}
 }
