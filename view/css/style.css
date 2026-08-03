@@ -724,6 +724,19 @@ select.bt-input{cursor:pointer;padding-right:28px}
   box-shadow:var(--shadow-sm);
 }
 
+/* Game over overlay */
+.game-dice{position:relative}
+.dice-overlay{
+  position:absolute;inset:0;z-index:10;
+  background:rgba(250,243,234,.94);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  border-radius:var(--radius);
+}
+.dice-overlay-text{
+  font-size:28px;font-weight:800;color:var(--text-muted);
+  text-align:center;line-height:2;letter-spacing:1px;
+}
+
 /* ---------- Gomoku ---------- */
 .gomoku-info{
   display:flex;align-items:center;gap:10px;
