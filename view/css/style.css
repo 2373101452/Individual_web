@@ -532,6 +532,7 @@ select.bt-input{cursor:pointer;padding-right:28px}
   display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
   padding-left:24px;
 }
+.main.game-mode #game-container{width:100%}
 .game-header{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
   margin-bottom:18px;padding:0 4px;
@@ -737,71 +738,40 @@ select.bt-input{cursor:pointer;padding-right:28px}
   text-align:center;line-height:2;letter-spacing:1px;
 }
 
-/* ---------- Gomoku ---------- */
-.gomoku-info{
-  display:flex;align-items:center;gap:10px;
-}
-.gomoku-turn{
-  font-size:15px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;
-}
-.gomoku-stone{
-  display:inline-block;width:20px;height:20px;border-radius:50%;
-  box-shadow:0 1px 3px rgba(0,0,0,.12);
-}
-.gomoku-stone.black{background:radial-gradient(circle at 36% 36%,#777,#222)}
-.gomoku-stone.white{background:radial-gradient(circle at 36% 36%,#fff,#ddd);border:1px solid #ccc}
-
-.gomoku-stage{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);
-  display:flex;justify-content:center;overflow-x:auto;
-  margin-bottom:20px;
-  -webkit-overflow-scrolling:touch;
-}
-.gomoku-board{
-  border-collapse:collapse;background:#e8dfcc;
-  border-radius:8px;box-shadow:var(--shadow);
-}
-.gomoku-board td{
-  width:32px;height:32px;text-align:center;vertical-align:middle;cursor:pointer;
-  position:relative;transition:background .12s;
-}
-.gomoku-board td:hover{background:rgba(255,255,255,.18)}
-.gomoku-board td::before{
-  content:"";position:absolute;top:0;left:0;right:0;bottom:0;
-  border:1px solid rgba(0,0,0,.13);
-}
-.gomoku-board td.black{
-  color:#333;font-size:22px;line-height:32px;cursor:default;
-  text-shadow:0 1px 1px rgba(0,0,0,.15);
-}
-.gomoku-board td.white{
-  color:#999;font-size:22px;line-height:32px;cursor:default;
-  text-shadow:0 1px 1px rgba(0,0,0,.08);
-}
-.gomoku-board td.win{
-  animation:win-glow .6s ease-in-out infinite alternate;
-}
-@keyframes win-glow{
-  from{box-shadow:inset 0 0 6px rgba(243,178,95,.5)}
-  to{box-shadow:inset 0 0 16px rgba(243,178,95,.8), 0 0 12px rgba(243,178,95,.35)}
-}
-
-.gomoku-actions{
-  text-align:center;
-}
-.gomoku-result{
-  font-size:18px;font-weight:800;margin-bottom:14px;
-  color:var(--brand-d);min-height:28px;
-}
-
 @media(max-width:768px){
-  .gomoku-board td{width:24px;height:24px;font-size:16px;line-height:24px}
-  .gomoku-board td.black,.gomoku-board td.white{font-size:16px;line-height:24px}
-  .dice-face{width:60px;height:60px}
-  .dice-row{gap:12px}
-  .dot{font-size:12px}
-  .dice-layout{flex-direction:column;gap:20px}
-  .dice-left{max-width:100%;padding:18px}
-  .dice-right{max-width:100%}
+  /* Dice mobile */
+  .game-wrap{max-width:100%;padding:12px 0 20px}
+  .game-title{font-size:16px}
+  .dice-balance{font-size:14px;padding:6px 14px}
+  .dice-bal-num{font-size:18px}
+  .dice-rules{font-size:12px;padding:10px 14px;line-height:1.6;max-width:100%}
+  .dice-layout{flex-direction:column;gap:16px}
+  .dice-left{max-width:100%;padding:18px 16px;width:100%;order:2}
+  .dice-right{max-width:100%;padding:14px;width:100%;order:1}
+  .dice-face{width:56px;height:56px}
+  .dice-row{gap:10px}
+  .dot{font-size:11px}
+  .dot.tl{top:8px;left:8px}.dot.tr{top:8px;right:8px}
+  .dot.bl{bottom:8px;left:8px}.dot.br{bottom:8px;right:8px}
+  .dot.ml{top:50%;left:8px}.dot.mr{top:50%;right:8px}
+  .dice-result{font-size:13px;height:36px}
+  .dice-choice{gap:10px;margin-bottom:12px}
+  .btn-pick{font-size:15px;padding:14px 10px;gap:4px}
+  .btn-pick-main{font-size:16px}
+  .btn-pick small{font-size:11px}
+  .dice-bet-row{margin-bottom:12px;gap:10px}
+  .dice-label{font-size:13px}
+  .dice-input{width:64px;font-size:16px;padding:8px 0}
+  .btn-submit{padding:12px;font-size:15px}
+  .btn-quit{padding:12px;font-size:15px}
+  .dice-h-item{padding:10px 12px}
+  .dice-h-choice{font-size:12px}
+  .dice-h-change{font-size:14px}
+  .dice-history-list{max-height:240px}
+  .dice-corner-restart{bottom:20px;right:16px;padding:6px 14px;font-size:12px}
+  .dice-overlay-text{font-size:22px}
+
+  /* Hide game-mode left padding */
+  .main.game-mode .content{padding-left:0;align-items:stretch}
+  .main.game-mode #game-container{width:100%}
 }

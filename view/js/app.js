@@ -246,7 +246,6 @@ document.querySelectorAll('.nav-item[data-game]').forEach(function(item){
     document.getElementById('list-container').style.display = 'none';
     document.getElementById('game-container').style.display = '';
     if(currentGame === 'dice'){ initDiceGame(); }
-    else if(currentGame === 'gomoku'){ initGomokuGame(); }
   });
 });
 document.getElementById('search-input').addEventListener('input', function(e){
