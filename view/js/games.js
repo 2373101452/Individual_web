@@ -1,7 +1,7 @@
 /* ==============================
    猜大小 — 三骰子游戏
    ============================== */
-var diceBalance = 10;
+var diceBalance = 100;
 var diceBet = 0;
 var diceRolling = false;
 var diceHistory = [];
@@ -12,9 +12,9 @@ var DICE_BALANCE_KEY = 'dice_balance_v1';
 function loadDiceBalance(){
   try{
     var v = parseInt(localStorage.getItem(DICE_BALANCE_KEY));
-    if(isNaN(v) || v < 0) v = 10;
+    if(isNaN(v) || v < 0) v = 100;
     diceBalance = v;
-  }catch(e){ diceBalance = 10; }
+  }catch(e){ diceBalance = 100; }
 }
 function saveDiceBalance(){
   localStorage.setItem(DICE_BALANCE_KEY, diceBalance);
@@ -43,7 +43,7 @@ function initDiceGame(){
         '<h2 class="game-title">猜大小</h2>',
         '<div class="dice-balance">余额：<span class="dice-bal-num" id="diceBalance">'+diceBalance+'</span> 币</div>',
       '</div>',
-      '<div class="dice-rules">规则：三枚骰子，猜"大"(11-17)或"小"(4-10)；豹子（三枚同数）通吃；猜中返还双倍；默认余额10币</div>',
+      '<div class="dice-rules">规则：三枚骰子，猜"大"(11-17)或"小"(4-10)；豹子（三枚同数）通吃；猜中返还双倍；默认余额100币</div>',
       '<div class="dice-layout">',
         // 左侧 — 游戏操作
         '<div class="dice-left">',
@@ -120,7 +120,7 @@ function hideDiceRestart(){
 }
 
 function diceRestart(){
-  diceBalance = 10;
+  diceBalance = 100;
   diceHistory = [];
   saveDiceBalance();
   saveDiceHistory();
