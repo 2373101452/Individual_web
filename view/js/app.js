@@ -129,14 +129,26 @@ function render(){
   const container = document.getElementById('list-container');
 
   if(filtered.length === 0){
-    container.innerHTML = [
-      '<div class="empty">',
-        '<div class="empty-icon">📭</div>',
-        '<h3>'+(currentSearch ? '没有匹配的地址' : '还没有地址')+'</h3>',
-        '<p>'+(currentSearch ? '换个关键词试试' : '点击"添加地址"开始管理你的网络资源')+'</p>',
-        '<button class="btn btn-primary" onclick="openModal()">+ 添加第一个地址</button>',
-      '</div>'
-    ].join('');
+    if(links.length === 0){
+      container.innerHTML = [
+        '<div class="empty">',
+          '<div class="empty-icon">📭</div>',
+          '<h3>还没有地址</h3>',
+          '<p>点击下方按钮开始管理你的网络资源</p>',
+          '<button class="btn btn-primary" onclick="openModal()">+ 添加第一个地址</button>',
+          '<button class="btn btn-restore" onclick="restoreDefaultData()">恢复初始数据</button>',
+        '</div>'
+      ].join('');
+    } else {
+      container.innerHTML = [
+        '<div class="empty">',
+          '<div class="empty-icon">📭</div>',
+          '<h3>'+(currentSearch ? '没有匹配的地址' : '还没有地址')+'</h3>',
+          '<p>'+(currentSearch ? '换个关键词试试' : '点击"添加地址"开始管理你的网络资源')+'</p>',
+          '<button class="btn btn-primary" onclick="openModal()">+ 添加第一个地址</button>',
+        '</div>'
+      ].join('');
+    }
   } else {
     container.innerHTML = '<div class="grid">' + filtered.map(renderCard).join('') + '</div>';
   }
@@ -583,14 +595,50 @@ function toast(msg){
 }
 
 /* ====== Seed sample data (first run) ====== */
+function restoreDefaultData(){
+  localStorage.removeItem(STORAGE_KEY);
+  seedIfEmpty();
+  loadData();
+  render();
+  toast('已恢复初始数据');
+}
 function seedIfEmpty(){
   if(localStorage.getItem(STORAGE_KEY)) return;
-  var now = Date.now();
   links = [
-    {id:genId(), name:'GitHub', url:'https://github.com', type:'website', tags:'开发,代码托管', creds:[], desc:'全球最大代码托管平台', starred:true, createdAt:now-86400000, updatedAt:now-86400000},
-    {id:genId(), name:'OpenAI API', url:'https://api.openai.com/v1', type:'api', tags:'AI,接口', creds:[{user:'sk-xxx', pass:''}], desc:'大模型接口端点', starred:true, createdAt:now-259200000, updatedAt:now-3600000},
-    {id:genId(), name:'MDN Web Docs', url:'https://developer.mozilla.org', type:'website', tags:'文档,前端', creds:[], desc:'Web 开发权威文档', starred:false, createdAt:now-172800000, updatedAt:now-172800000},
-    {id:genId(), name:'生产服务器', url:'192.168.1.100', type:'server', tags:'生产环境,SSH', creds:[{user:'root', pass:'••••••'},{user:'admin', pass:'admin123'}], desc:'主应用服务器，Ubuntu 22.04', starred:false, createdAt:now-345600000, updatedAt:now-345600000},
+    {"id":"msedou8wkcdx","name":"学习网站","url":"https://www.xue8nav.com","type":"website","tags":"学习，知网","creds":[],"desc":"","starred":false,"createdAt":1785831035936,"updatedAt":1785831035936},
+    {"id":"msedm30w7unq","name":"PDF工具","url":"https://tools.pdf24.org/zh/all-tools","type":"tool","tags":"PDF，格式转换","creds":[],"desc":"","starred":false,"createdAt":1785830907344,"updatedAt":1785830907344},
+    {"id":"msedi9uietsj","name":"网站收录","url":"https://qinggongju.com/","type":"tool","tags":"大全","creds":[],"desc":"","starred":false,"createdAt":1785830729562,"updatedAt":1785830737003},
+    {"id":"mseddceiets6","name":"工具聚合网站","url":"https://nav.qinight.com","type":"tool","tags":"工具大全","creds":[],"desc":"","starred":false,"createdAt":1785830499594,"updatedAt":1785830499594},
+    {"id":"msedaoogg15i","name":"壁纸","url":"https://haowallpaper.com","type":"website","tags":"4k，无需登录","creds":[],"desc":"","starred":false,"createdAt":1785830375536,"updatedAt":1785830375536},
+    {"id":"msed7cuqbpf2","name":"文件共享","url":"https://folderport.com/zh","type":"website","tags":"","creds":[],"desc":"即时文件线上传输共享","starred":false,"createdAt":1785830220242,"updatedAt":1785830220242},
+    {"id":"msed4c3fb6d2","name":"修理手册","url":"https://zh.ifixit.com/","type":"tool","tags":"电子产品，生活用品","creds":[],"desc":"工具维修，维修指南","starred":false,"createdAt":1785830079291,"updatedAt":1785830116425},
+    {"id":"msecza9dpcxx","name":"全端免费观影","url":"hhkan.tv","type":"website","tags":"","creds":[],"desc":"电影，电视剧，免费，APP，网页，TV","starred":false,"createdAt":1785829843633,"updatedAt":1785829855265},
+    {"id":"msecprtr73lq","name":"全景故宫","url":"https://pano.dpm.org.cn","type":"website","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785829399839,"updatedAt":1785829399839},
+    {"id":"mscm42l554dv","name":"OpenAI API","url":"https://api.openai.com/v1","type":"api","tags":"AI,接口","creds":[],"desc":"大模型接口端点","starred":true,"createdAt":1785228869784,"updatedAt":1785724251161},
+    {"id":"mscm42l5eb6m","name":"GitHub","url":"https://github.com","type":"website","tags":"开发,代码托管","creds":[],"desc":"全球最大代码托管平台","starred":true,"createdAt":1785401669784,"updatedAt":1785724251161},
+    {"id":"mscm42l5oyf8","name":"高德地图","url":"https://www.amap.com/","type":"website","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785488091648,"updatedAt":1785724251161},
+    {"id":"mscm42l5jsii","name":"谷歌地图","url":"https://www.google.co.jp/maps/","type":"website","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785484944030,"updatedAt":1785724251161},
+    {"id":"mscm42l5ppsy","name":"steam兑换礼品卡","url":"https://store.steampowered.com/account/redeemwalletcode","type":"website","tags":"steam，兑换礼品卡，CDK","creds":[],"desc":"","starred":false,"createdAt":1785484877503,"updatedAt":1785724251161},
+    {"id":"mscm42l5ifvq","name":"小黑盒","url":"https://www.xiaoheihe.cn/app/bbs/home","type":"website","tags":"小黑盒，社区","creds":[],"desc":"","starred":false,"createdAt":1785484786464,"updatedAt":1785724251161},
+    {"id":"mscm42l5qiri","name":"谷歌地图实景","url":"https://randomstreetview.com/","type":"website","tags":"地图实景","creds":[],"desc":"","starred":false,"createdAt":1785484324238,"updatedAt":1785724251161},
+    {"id":"mscm42l5min1","name":"ikunnVPN","url":"ikuuu.win","type":"tool","tags":"VPN","creds":[],"desc":"","starred":false,"createdAt":1785484153079,"updatedAt":1785724251161},
+    {"id":"mscm42l5fkjk","name":"网址管理线上地址","url":"https://webbelief.netlify.app/","type":"tool","tags":"书签，网址管理","creds":[],"desc":"","starred":false,"createdAt":1785484019960,"updatedAt":1785724251161},
+    {"id":"mscm42l58wg5","name":"Netlify","url":"https://app.netlify.com/projects/webbelief/overview","type":"tool","tags":"部署","creds":[],"desc":"","starred":false,"createdAt":1785483954689,"updatedAt":1785724251161},
+    {"id":"mscm42l5gl1d","name":"谷歌浏览器下载","url":"https://google.cn/chrome/fallback/","type":"website","tags":"谷歌浏览器,下载","creds":[],"desc":"","starred":false,"createdAt":1785483248271,"updatedAt":1785724251161},
+    {"id":"mscm42l5cj64","name":"Grok","url":"https://grok.com/","type":"AI","tags":"马斯克","creds":[],"desc":"","starred":false,"createdAt":1785483119417,"updatedAt":1785724251161},
+    {"id":"mscm42l5oriq","name":"随想","url":"https://sui-xiang.com/login","type":"zzz","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785483009417,"updatedAt":1785724251161},
+    {"id":"mscm42l5m5xk","name":"小米mimimo","url":"https://aistudio.xiaomimimo.com/#/c","type":"AI","tags":"小米","creds":[],"desc":"","starred":false,"createdAt":1785482938272,"updatedAt":1785724251161},
+    {"id":"mscm42l5wl09","name":"豆包","url":"https://www.doubao.com/chat/","type":"AI","tags":"字节","creds":[],"desc":"","starred":false,"createdAt":1785482909520,"updatedAt":1785724251161},
+    {"id":"mscm42l53vtb","name":"DeepSeek","url":"https://chat.deepseek.com/","type":"AI","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785482876697,"updatedAt":1785724251161},
+    {"id":"mscm42l587th","name":"chat8","url":"https://idx.funiuba.com/#/2523567","type":"AI","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785482848392,"updatedAt":1785724251161},
+    {"id":"mscm42l5r241","name":"Gemini","url":"https://gemini.google.com/app","type":"AI","tags":"Google","creds":[],"desc":"","starred":false,"createdAt":1785482741281,"updatedAt":1785724251161},
+    {"id":"mscm42l563cq","name":"工作日志","url":"https://www.knoact.com/hrm/dailyReport/dailyLog","type":"other","tags":"","creds":[],"desc":"日志","starred":false,"createdAt":1785482649801,"updatedAt":1785724251161},
+    {"id":"mscm42l5mig2","name":"土豆工具","url":"https://toolshu.com/","type":"tool","tags":"","creds":[],"desc":"在线工具","starred":false,"createdAt":1785482589929,"updatedAt":1785724251161},
+    {"id":"mscm42l5wyw9","name":"一键激活Windows/office","url":"https://kms.cx/","type":"tool","tags":"","creds":[],"desc":"激活Windows/office","starred":false,"createdAt":1785482504354,"updatedAt":1785724251161},
+    {"id":"mscm42l5znjm","name":"鲨鱼辣椒","url":"https://shayulajiao.xyz/profile","type":"zzz","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785482385274,"updatedAt":1785724251161},
+    {"id":"mscm42l50blk","name":"77CODE","url":"https://doce.77code.fun/","type":"zzz","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785482385274,"updatedAt":1785724251161},
+    {"id":"mscm42l59kk2","name":"GPT生图","url":"https://ai.mikuapi.org/ai-image-generator","type":"AI","tags":"chatGPT","creds":[],"desc":"","starred":false,"createdAt":1785482385274,"updatedAt":1785724251161},
+    {"id":"mscm42l5n339","name":"金贝贝","url":"https://downstream.jbbtoken.cn/keys","type":"zzz","tags":"","creds":[],"desc":"","starred":false,"createdAt":1785482385274,"updatedAt":1785724251161}
   ];
   saveData();
 }

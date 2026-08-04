@@ -68,6 +68,11 @@ function initDiceGame(){
                 '<button class="game-btn game-btn-sm" onclick="diceAdjustBet(1)">+</button>',
               '</div>',
             '</div>',
+            '<div class="dice-chip-row">',
+              '<button class="dice-chip" onclick="diceSetBet(1)">1</button>',
+              '<button class="dice-chip" onclick="diceSetBet(10)">10</button>',
+              '<button class="dice-chip" onclick="diceSetBet(100)">100</button>',
+            '</div>',
             '<button class="game-btn btn-submit" id="btnDiceSubmit" disabled onclick="diceRoll()">开 骰</button>',
             '<button class="game-btn btn-quit" id="btnDiceQuit" style="display:none" onclick="diceQuit()">跳 了</button>',
           '</div>',
@@ -148,6 +153,14 @@ function diceAdjustBet(delta){
   v = Math.max(1, Math.min(diceBalance, v + delta));
   input.value = v;
   diceBet = v;
+}
+
+function diceSetBet(v){
+  if(diceRolling) return;
+  v = Math.max(1, Math.min(diceBalance, v));
+  document.getElementById('diceBetInput').value = v;
+  diceBet = v;
+  diceValidateBet();
 }
 
 function diceValidateBet(){
