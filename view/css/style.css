@@ -71,6 +71,9 @@ body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 }
 .app-header .brand-name{font-size:17px;font-weight:800;line-height:1.25}
 .app-header .brand-sub{font-size:11px;color:var(--text-muted);letter-spacing:1px}
+.app-header .brand-link{text-decoration:none;color:inherit;cursor:pointer;transition:background .16s}
+.app-header .brand-link:hover{background:var(--brand-soft)}
+.app-header .brand-link:active{transform:scale(.99)}
 
 /* Notice ticker */
 .notice-bar{

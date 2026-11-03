@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>本地磁力播放器 WebTorrent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{max-width:1000px;margin:30px auto;padding:0 16px;color:#222}
+#input-wrap{display:flex;gap:8px;margin:16px 0}
+input{flex:1;padding:10px 12px;font-size:14px;border:1px solid #ccc;border-radius:6px}
+button{padding:10px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer}
+button:hover{background:#1d4ed8}
+#status{margin:12px 0;color:#555;min-height:20px}
+video{width:100%;border-radius:8px;background:#000;margin-top:10px}
+.info{font-size:13px;color:#666;margin:8px 0}
+</style>
+</head>
+<body>
+<h2>WebTorrent 本地磁力播放</h2>
+<div class="info">粘贴 magnet 磁力链接，点击开始加载，仅前端P2P，无第三方解析服务器</div>
+<div id="input-wrap">
+    <input id="magnetInput" placeholder="粘贴 magnet:?xt=urn:btih:xxxx 磁力链接">
+    <button id="startBtn">开始播放</button>
+</div>
+<div id="status"></div>
+<video id="video" controls></video>
+
+<script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+<script>
+const client = new WebTorrent()
+const magnetInput = document.getElementById('magnetInput')
+const startBtn = document.getElementById('startBtn')
+const statusEl = document.getElementById('status')
+const videoEl = document.getElementById('video')
+
+startBtn.onclick = ()=>{
+    const magnet = magnetInput.value.trim()
+    if(!magnet.startsWith('magnet:')){
+        statusEl.textContent = '❌ 不是有效的磁力链接'
+        return
+    }
+    statusEl.textContent = '⏳ 正在连接种子...'
+    client.add(magnet, (torrent)=>{
+        statusEl.textContent = `✅ 种子载入成功，文件数：${torrent.files.length}`
+        // 自动找第一个视频文件
+        const videoFile = torrent.files.find(f=>
+            f.name.endsWith('.mp4') ||
+            f.name.endsWith('.mkv') ||
+            f.name.endsWith('.mov') ||
+            f.name.endsWith('.webm')
+        )
+        if(!videoFile){
+            statusEl.textContent = '⚠️ 未找到支持的视频文件'
+            return
+        }
+        statusEl.textContent = `▶ 正在加载：${videoFile.name}`
+        videoFile.renderTo(videoEl)
+
+        torrent.on('download', ()=>{
+            const pct = (torrent.progress*100).toFixed(2)
+            statusEl.textContent = `下载进度：${pct}% | 速度：${(torrent.downloadSpeed/1024).toFixed(1)} KB/s`
+        })
+    })
+}
+</script>
+</body>
+</html>
