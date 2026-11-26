@@ -1,30 +1,39 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>本地磁力播放器 WebTorrent</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{max-width:1000px;margin:30px auto;padding:0 16px;color:#222}
-#input-wrap{display:flex;gap:8px;margin:16px 0}
-input{flex:1;padding:10px 12px;font-size:14px;border:1px solid #ccc;border-radius:6px}
-button{padding:10px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer}
-button:hover{background:#1d4ed8}
-#status{margin:12px 0;color:#555;min-height:20px}
-video{width:100%;border-radius:8px;background:#000;margin-top:10px}
-.info{font-size:13px;color:#666;margin:8px 0}
+:root{color-scheme:light;--bg:#faf3ea;--surface:#fffdf9;--border:#efe1cf;--text:#4b3a2c;--muted:#a08a73;--brand:#c9734a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100dvh;background:radial-gradient(900px 500px at 100% 0,#fdeede,transparent 60%),var(--bg);color:var(--text);font-family:'Microsoft YaHei',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.player-shell{width:min(100%,900px);margin:12px auto 0;padding:0 20px 24px}
+.player-card{padding:22px;background:var(--surface);border:1px solid var(--border);border-radius:22px;box-shadow:0 8px 28px rgba(190,140,95,.07)}
+.input-label{display:block;font-size:13px;font-weight:600;margin-bottom:10px}
+#input-wrap{display:flex;align-items:stretch;gap:10px}
+#magnetInput{flex:1;min-width:0;width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:12px;background:#faf7f2;color:var(--text);font:14px/1.5 system-ui,sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
+#magnetInput::placeholder{color:#b09d8a}#magnetInput:focus{border-color:#d69b79;box-shadow:0 0 0 3px rgba(201,115,74,.1)}
+#startBtn{flex-shrink:0;min-height:46px;padding:0 22px;border:0;border-radius:12px;background:var(--brand);color:white;font:600 14px/1.5 system-ui,sans-serif;cursor:pointer;transition:background .15s}#startBtn:hover{background:#b86440}#startBtn:focus-visible{outline:2px solid #8f5134;outline-offset:3px}
+.info{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.6}
+#status{min-height:20px;margin:14px 0 12px;color:var(--muted);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.video-frame{overflow:hidden;border-radius:16px;background:#252525;border:1px solid rgba(75,58,44,.08)}
+video{display:block;width:100%;aspect-ratio:16/9;max-height:calc(100dvh - 255px);min-height:120px;object-fit:contain;background:#252525}
+@media(max-width:600px){.player-shell{margin-top:6px;padding:0 12px 16px}.player-card{padding:16px;border-radius:18px}#input-wrap{flex-direction:column;gap:10px}#magnetInput{font-size:16px;padding:12px}#startBtn{width:100%;min-height:44px}.video-frame{border-radius:12px}video{max-height:calc(100dvh - 330px)}#status{margin:12px 0}}
 </style>
-</head>
+<link rel="stylesheet" href="../css/navigation.css"><link rel="stylesheet" href="../css/theme.css"></head>
 <body>
-<h2>WebTorrent 本地磁力播放</h2>
-<div class="info">粘贴 magnet 磁力链接，点击开始加载，仅前端P2P，无第三方解析服务器</div>
-<div id="input-wrap">
-    <input id="magnetInput" placeholder="粘贴 magnet:?xt=urn:btih:xxxx 磁力链接">
-    <button id="startBtn">开始播放</button>
-</div>
-<div id="status"></div>
-<video id="video" controls></video>
-
+<main class="player-shell">
+  <section class="player-card" aria-label="磁力播放器">
+    <label class="input-label" for="magnetInput">磁力链接</label>
+    <div id="input-wrap">
+      <input id="magnetInput" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="粘贴 magnet:?xt=… 链接">
+      <button id="startBtn" type="button">开始播放</button>
+    </div>
+    <p class="info">粘贴链接即可播放，加载速度取决于资源连接情况。</p>
+    <div id="status" role="status" aria-live="polite">等待添加播放链接</div>
+    <div class="video-frame"><video id="video" controls playsinline preload="metadata" aria-label="视频播放区"></video></div>
+  </section>
+</main>
 <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
 <script>
 const client = new WebTorrent()
@@ -63,5 +72,5 @@ startBtn.onclick = ()=>{
     })
 }
 </script>
-</body>
+<script src="../js/navigation.js"></script></body>
 </html>

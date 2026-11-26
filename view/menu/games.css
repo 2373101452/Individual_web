@@ -1,0 +1,59 @@
+.standalone-game{display:block;height:auto;min-height:100vh;overflow:auto}.play-header{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surface)}.play-header a{color:var(--brand-d);text-decoration:none}.standalone-game #game-container{width:100%;max-width:1000px;margin:24px auto;padding:0 16px;box-sizing:border-box}.play-panel{max-width:620px;margin:auto;padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:20px}.play-panel p{line-height:1.8;margin:12px 0}.play-panel button{min-height:44px;padding:10px 16px;border:1px solid var(--border);border-radius:10px;background:var(--brand-soft);color:var(--text);cursor:pointer}.play-panel button:disabled{opacity:.55;cursor:default}.go-board{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));width:100%;aspect-ratio:1;margin:16px 0;background:#f2f3f5}.play-panel .go-cell{min-height:0;min-width:0;padding:0;border:1px solid #c5c9cf;border-radius:0;background:transparent;position:relative;aspect-ratio:1;touch-action:manipulation;opacity:1}.go-cell.black:after,.go-cell.white:after{content:'';position:absolute;inset:7%;border-radius:50%;background:#222;box-shadow:0 1px 3px #666}.go-cell.white:after{background:#fff}.cards,.play-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.card{display:grid;place-items:center;width:72px;height:100px;border:1px solid #ddd;background:#fff;border-radius:10px;font-size:26px;color:#222}.card.red{color:#c53030}.play-actions button{flex:1 1 28%}#dice-welfare{margin-top:24px}@media(max-width:600px){.standalone-game #game-container{margin:12px auto;padding:0 10px}.play-panel{padding:14px}.play-header{padding:14px}.card{width:64px;height:88px}.play-actions{gap:8px}.play-actions button{flex:1 1 40%}.standalone-game .game-header{flex-wrap:wrap;gap:8px}.standalone-game .dice-left,.standalone-game .dice-right{box-sizing:border-box}.standalone-game .game-wrap{min-width:0}.standalone-game .welfare-card{box-sizing:border-box}}
+/* 鼠标悬停时预览落子位置，仅对空位显示。 */
+@media (hover:hover) and (pointer:fine){
+  .play-panel .go-cell:not(:disabled):hover::before{
+    content:'';position:absolute;inset:7%;border-radius:50%;
+    background:rgba(55,65,81,.16);
+    box-shadow:0 2px 6px rgba(31,41,55,.22);
+    pointer-events:none;
+  }
+}
+.play-actions button[aria-pressed="true"]{background:var(--brand-d);color:#fff}.go-board.thinking,.go-board.finished{pointer-events:none}.go-board.thinking{cursor:wait}
+.go-modes{display:inline-flex;gap:3px;padding:3px;margin:12px 0 0;background:#eceef0;border:1px solid #e1e4e8;border-radius:9px}
+.play-panel .go-modes button{min-height:34px;padding:6px 12px;border:0;border-radius:6px;background:transparent;color:#7b818a;font-size:12px;font-weight:400;line-height:1.5;box-shadow:none}
+.play-panel .go-modes button[aria-pressed="true"]{background:#fff;color:#4b525c;box-shadow:0 1px 3px rgba(30,40,50,.08)}
+.play-panel .go-modes button:focus-visible{outline:2px solid #929aa5;outline-offset:2px}
+@media(pointer:coarse){.play-panel .go-modes button{min-height:40px}}
+/* 收紧游戏布局，棋盘随可用屏幕高度缩放。 */
+.standalone-game .play-header{min-height:52px;height:52px;box-sizing:border-box}
+.standalone-game #game-container{margin:8px auto;padding-bottom:12px}
+.play-panel{padding:14px 18px}
+.play-panel p{margin:6px 0;font-size:13px;line-height:1.5}
+.go-modes{margin-top:0}
+.go-board{width:min(100%,max(220px,calc(100dvh - 255px)));margin:10px auto}
+.play-panel:has(.go-board){text-align:center}
+.cards{margin:8px 0;gap:8px}
+#hands h3{font-size:13px;font-weight:400;color:#777d85}
+.card{width:56px;height:76px;font-size:22px}
+.play-actions{margin:10px 0;gap:8px}
+.standalone-game .game-wrap{padding-top:0;padding-bottom:0}
+.standalone-game .game-header{position:static;padding:8px 12px;margin-bottom:8px}
+.standalone-game .dice-rules{padding:8px 12px;margin-bottom:10px}
+.standalone-game .dice-history-list{max-height:160px}
+.standalone-game .welfare-card{padding:16px 20px}
+.standalone-game .welfare-icon{display:none}
+.standalone-game .welfare-hint{margin-top:8px}
+.standalone-game #dice-welfare{margin-top:12px}
+@media(max-width:600px){.play-panel{padding:10px 12px}.standalone-game .dice-layout{gap:10px}.standalone-game .dice-left{order:1;padding:12px}.standalone-game .dice-right{order:2;padding:10px}.standalone-game .dice-history-list{max-height:100px}.standalone-game .welfare-card{padding:12px}.standalone-game .welfare-btn{padding:8px 20px}.play-panel details{font-size:12px}}
+/* 扑克牌双角索引与花色布局 */
+.card{position:relative;display:block;width:76px;height:106px;border:1px solid #d5d7da;border-radius:7px;background:#fff;color:#202328;box-shadow:0 2px 4px rgba(20,25,30,.09);overflow:hidden}
+.card.red{color:#c92b36}.card-corner{position:absolute;display:flex;flex-direction:column;align-items:center;line-height:1;gap:1px;font-family:Georgia,'Times New Roman',serif;font-weight:bold}.card-corner.top{top:5px;left:5px}.card-corner.bottom{bottom:5px;right:5px;transform:rotate(180deg)}.card-rank{font-size:17px}.card-suit{font-size:13px}.card-pips{position:absolute;inset:17px 19px;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;align-items:center;justify-items:center;font-size:16px;line-height:1}.pips-14{font-size:32px;grid-template-columns:1fr}.pips-2,.pips-3{grid-template-columns:1fr}.pips-2 .pip:last-child,.pips-3 .pip:last-child{transform:rotate(180deg)}.pips-4 .pip:nth-child(n+3),.pips-5 .pip:nth-child(n+3),.pips-6 .pip:nth-child(n+5),.pips-7 .pip:nth-child(n+5),.pips-8 .pip:nth-child(n+5),.pips-9 .pip:nth-child(n+5),.pips-10 .pip:nth-child(n+7){transform:rotate(180deg)}.pips-5 .pip:last-child,.pips-7 .pip:last-child,.pips-9 .pip:last-child{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}.card-court{position:absolute;inset:22px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid currentColor;background:#faf8f2;font:bold 28px Georgia,serif}.card-court small{font-size:20px}.card-back{padding:5px;background:#fff}.card-back-pattern{display:block;width:100%;height:100%;border-radius:3px;background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(255,255,255,.22) 3px 4px),repeating-linear-gradient(-45deg,#64758b 0 3px,#8090a3 3px 4px);border:1px solid #64758b}
+@media(max-width:600px){.card{width:64px;height:90px}.card-rank{font-size:15px}.card-suit{font-size:11px}.card-pips{inset:16px 17px;font-size:13px}.pips-14{font-size:28px}.card-court{inset:21px 17px;font-size:23px}.card-court small{font-size:16px}}
+/* 移动端整体宽度随视口自适应 */
+.standalone-game{width:100%;min-width:0;box-sizing:border-box}
+.standalone-game #game-container,.play-panel{width:100%;max-width:100%;box-sizing:border-box;min-width:0}
+.play-panel{max-width:620px;margin-inline:auto}
+.cards{width:100%;min-width:0;flex-wrap:nowrap}
+.card{flex:0 1 76px;min-width:0;aspect-ratio:38/53;height:auto}
+.play-actions,.go-modes{max-width:100%;box-sizing:border-box}
+.play-actions button{min-width:0;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:600px){
+ .standalone-game #game-container{width:100%;padding-inline:clamp(8px,3vw,16px)}
+ .play-panel{padding-inline:clamp(8px,3vw,14px)}
+ .cards{gap:clamp(6px,2.5vw,12px)}
+ .card{flex-basis:clamp(52px,20vw,76px);width:auto;height:auto}
+ .go-board{max-width:100%;min-width:0}
+ .standalone-game .dice-layout,.standalone-game .dice-left,.standalone-game .dice-right{width:100%;min-width:0;max-width:100%}
+ .standalone-game .dice-bet-row{flex-wrap:wrap}
+ .standalone-game .welfare-card{width:100%;max-width:100%}
+}

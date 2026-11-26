@@ -94,6 +94,7 @@ function initDiceGame(){
     '</div>'
   ].join('');
   renderDiceHistory();
+  var welfare=document.createElement("section"); welfare.id="dice-welfare"; container.appendChild(welfare); initWelfarePage();
   // 默认选中「押 大」
   if(diceBalance > 0){
     document.getElementById('btnBig').classList.add('picked');
@@ -318,12 +319,12 @@ function initWelfarePage(){
   try{
     var v = parseInt(localStorage.getItem('dice_balance_v1'));
     if(!isNaN(v) && v >= 0) diceBalance = v;
-    else diceBalance = 0;
-  }catch(e){ diceBalance = 0; }
+    else diceBalance = 100;
+  }catch(e){ diceBalance = 100; }
 
   var signedToday = isSignedToday();
   var todayReward = localStorage.getItem('welfare_today_reward') || '';
-  var container = document.getElementById('game-container');
+  var container = document.getElementById('dice-welfare');
   container.innerHTML = [
     '<div class="game-wrap game-welfare">',
       '<div class="welfare-card">',
@@ -348,6 +349,7 @@ function isSignedToday(){
 }
 
 function doSignIn(){
+  if(diceRolling) return;
   if(isSignedToday()) return;
 
   var reward = Math.floor(Math.random() * 101) + 100; // 100-200
@@ -356,5 +358,5 @@ function doSignIn(){
   localStorage.setItem('welfare_today_reward', reward);
   saveDiceBalance();
   // 重绘页面
-  initWelfarePage();
+  initDiceGame();
 }
