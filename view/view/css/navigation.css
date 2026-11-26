@@ -1,0 +1,28 @@
+.page-back{display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;min-height:40px;padding:0 12px;margin-right:12px;border:1px solid #e1e4e8;border-radius:9px;background:#f3f4f5;color:#626973!important;text-decoration:none!important;font:13px/1.4 system-ui,sans-serif;white-space:nowrap;box-sizing:border-box}.page-back:hover{background:#e8eaed}.page-back:focus-visible{outline:2px solid #929aa5;outline-offset:2px}.page-back-bar{padding:12px 16px;text-align:left}@media(max-width:600px){.page-back{min-height:40px;padding:0 9px;margin-right:8px;font-size:12px}.app-header .page-back~.brand{margin-left:0}.app-header .page-back~.brand .brand-sub{letter-spacing:0}}
+/* 返回入口与页面背景融合 */
+.page-back{background:transparent;border-color:transparent;box-shadow:none;color:#777d85!important}
+.page-back:hover{background:rgba(100,110,120,.07)}
+.app-header,.play-header{background:transparent!important;border-bottom:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.page-back-bar{background:transparent;border:0;box-shadow:none}
+/* 固定返回入口，并为原有顶部内容预留空间 */
+.page-back{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:1000;margin:0}
+.app-header:has(> .page-back),.play-header:has(> .page-back){padding-left:calc(100px + env(safe-area-inset-left,0px))!important}
+.navbar:has(> .page-back){padding-left:calc(100px + env(safe-area-inset-left,0px))}
+.page-back-bar:has(> .page-back){min-height:60px;padding-top:env(safe-area-inset-top,0px);box-sizing:border-box}
+@media(max-width:600px){.page-back{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));margin:0}.app-header:has(> .page-back),.play-header:has(> .page-back),.navbar:has(> .page-back){padding-left:calc(78px + env(safe-area-inset-left,0px))!important}}
+/* 隐去页面标题，保留操作标签和状态信息。 */
+h1,h2,.content-title,.game-title,.welfare-title,.brand-name,.brand-sub,.menu-badge,.play-header>strong{display:none!important}
+.menu-hero{display:none}
+.app-header,.play-header{min-height:54px;height:54px}
+.brand{display:none!important}
+.menu-wrap{padding-top:16px;padding-bottom:20px}
+.menu-foot{margin-top:14px}
+.page-back-bar:has(> .page-back){min-height:48px;padding-bottom:0}
+video{max-height:calc(100dvh - 220px);object-fit:contain}
+@media(max-width:600px){.menu-wrap{padding-top:12px;padding-bottom:16px}.menu-list{gap:8px;padding:10px}.menu-item{padding:10px 12px}}
+/* 网址管理主页保留原有功能菜单入口。 */
+.bookmark-home .brand{display:flex!important}
+.bookmark-home .brand-name,.bookmark-home .brand-sub{display:block!important}
+/* 功能菜单主页展示原有品牌入口，不添加返回按钮。 */
+.menu-home .brand{display:flex!important}
+.menu-home .brand-name,.menu-home .brand-sub{display:block!important}

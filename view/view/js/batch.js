@@ -60,7 +60,7 @@ function readBatchRows(){
     function g(f){ return r.querySelector('[data-f="'+f+'"]').value.trim(); }
     var name = g('name'), url = g('url');
     if(!name || !url) return;
-    out.push({ name:name, url:url, type:g('type'), tags:g('tags'), user:g('user'), pass:g('pass'), desc:g('desc'), id:genId(), starred:false, createdAt:Date.now(), updatedAt:Date.now() });
+    out.push({ name:name, url:url, type:g('type'), tags:g('tags'), creds:(g('user')||g('pass')?[{user:g('user'), pass:g('pass')}]:[]), desc:g('desc'), id:genId(), starred:false, createdAt:Date.now(), updatedAt:Date.now() });
   });
   return out;
 }

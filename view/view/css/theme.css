@@ -1,0 +1,60 @@
+/* 全站统一：雾白底色、石墨文字与低饱和蓝。 */
+:root{--bg:#f5f7fa;--surface:#fff;--surface-2:#f0f3f7;--border:#e3e8ef;--text:#273345;--text-muted:#748194;--muted:#748194;--brand:#597da8;--brand-d:#42658f;--brand-soft:#edf3fa;--accent:#7d99b7;--danger:#c85b62;--danger-soft:#fcf0f1;--star:#c59b50;--shadow-sm:0 2px 8px rgba(35,55,80,.035);--shadow:0 8px 26px rgba(35,55,80,.055);--shadow-lg:0 16px 42px rgba(35,55,80,.1);--radius-s:10px;--radius:16px;--radius-l:20px;--radius-pill:999px;--grad:linear-gradient(135deg,#6786ac,#89a2bf);--grad-shadow:0 4px 12px rgba(70,100,140,.12);color-scheme:light}
+body{background:var(--bg)!important;color:var(--text)}
+::selection{background:#dce8f6;color:#273345}
+*{scrollbar-color:#c5ced9 transparent;scrollbar-width:thin}
+*::-webkit-scrollbar-thumb{background:#c5ced9!important;background-clip:content-box!important}*::-webkit-scrollbar-thumb:hover{background:#aab8c8!important}
+.brand-logo{background:#edf3fa!important;color:#58799e!important;box-shadow:none!important;border:1px solid #dce6f1;border-radius:12px}
+.app-header .brand{border-right-color:var(--border)}
+.sidebar{background:var(--surface);border-color:var(--border)}
+.nav-dot{background:#92a6bf!important}.nav-item.active .nav-dot{background:var(--brand)!important}
+.nav-item:hover,.nav-item.active{background:var(--brand-soft);color:var(--brand-d)}
+.menu-list{border-radius:20px;box-shadow:var(--shadow);padding:12px;background:var(--surface)}
+.menu-item{border-radius:12px;transition:background .18s,transform .18s;box-shadow:none!important}
+.menu-item:hover{background:#f2f6fb;border-color:#dce6f1;transform:translateY(-1px)}
+.menu-icon,.menu-icon.magnet{background:#edf3fa!important;color:#5e7fa5!important;box-shadow:none!important;border-radius:12px}
+.menu-arrow{color:#96a6b9}.menu-title{color:var(--text);font-weight:600}.menu-desc,.menu-foot{color:var(--text-muted)}
+.btn-primary,.btn-submit,.welfare-btn{background:var(--brand)!important;color:#fff;box-shadow:none!important}.btn-primary:hover,.btn-submit:hover,.welfare-btn:hover{background:var(--brand-d)!important}
+.btn,.game-btn,.welfare-btn{border-radius:10px}.modal,.player-card,.play-panel,.welfare-card{border-color:var(--border);box-shadow:var(--shadow);background:var(--surface);border-radius:18px}
+input:not([type=checkbox]):not([type=radio]),textarea,select{accent-color:var(--brand)}
+.form-control,.search,.dice-input{background:#f8fafc;border-color:var(--border);color:var(--text)}
+.form-control:focus,.dice-input:focus{border-color:#8da8c8;box-shadow:0 0 0 3px rgba(89,125,168,.1)}
+.player-shell #magnetInput{background:#f7f9fc;border-color:var(--border);color:var(--text)}.player-shell #magnetInput::placeholder{color:#94a1b2}.player-shell #magnetInput:focus{border-color:#8da8c8;box-shadow:0 0 0 3px rgba(89,125,168,.1)}.player-shell #startBtn{background:var(--brand)}.player-shell #startBtn:hover{background:var(--brand-d)}.player-shell .info,.player-shell #status{color:var(--text-muted)}
+.dice-left,.dice-right{background:var(--surface);border-color:var(--border);box-shadow:var(--shadow-sm)}.dice-rules,.dice-balance{background:var(--brand-soft);color:var(--brand-d)}.btn-pick.picked{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-d)}.dice-chip{background:var(--surface-2);border-color:var(--border);color:var(--text)}
+.standalone-game .game-header{background:transparent;border-color:var(--border)}
+.play-panel .play-actions button{background:var(--brand-soft);color:var(--brand-d);border-color:#dce6f1}.play-panel .play-actions button:hover:not(:disabled){background:#e1ebf7}
+.page-back{color:var(--text-muted)!important}.page-back:hover{background:#e9eef5}
+.content-sticky{background:var(--bg)}
+@media(max-width:600px){.menu-list{padding:8px;border-radius:16px}.menu-item{gap:12px}.modal,.player-card,.play-panel{border-radius:14px}}
+/* 轻盈的彩色点缀：功能与状态各有辨识色。 */
+:root{--bg:#f5f8fc;--brand:#4d86d9;--brand-d:#356dbd;--brand-soft:#edf4ff;--accent:#f0ad59;--star:#e6ad40;--danger:#dc6973;--danger-soft:#fff0f2;--grad:linear-gradient(135deg,#6499e6,#7fbee2)}
+body{background:radial-gradient(ellipse at 8% 0%,rgba(126,174,235,.10),transparent 45%),radial-gradient(ellipse at 100% 85%,rgba(112,199,174,.07),transparent 45%),var(--bg)!important}
+.brand-logo{background:linear-gradient(135deg,#6c9fe6,#7bbdc9)!important;color:#fff!important;border:0;box-shadow:0 3px 10px rgba(89,142,202,.16)!important}
+.nav-item[data-filter="all"] .nav-dot,.nav-item[data-filter="website"] .nav-dot{background:#6897de!important}
+.nav-item[data-filter="starred"] .nav-dot{background:#e9b54c!important}
+.nav-item[data-filter="zzz"] .nav-dot{background:#a58bce!important}
+.nav-item[data-filter="AI"] .nav-dot{background:#63b8a3!important}
+.nav-item[data-filter="tool"] .nav-dot{background:#db8da6!important}
+.nav-item[data-filter="database"] .nav-dot{background:#8aaf6d!important}
+.nav-item[data-filter="api"] .nav-dot{background:#e2a170!important}
+.nav-item[data-filter="server"] .nav-dot{background:#799ac3!important}
+.nav-item[data-filter="other"] .nav-dot{background:#a5a0b8!important}
+.menu-item[href="cl.html"] .menu-icon{background:#eaf2ff!important;color:#5d8dd3!important}
+.menu-item[href="dice.html"] .menu-icon{background:#fff1e4!important;color:#d9904e!important}
+.menu-item[href="gomoku.html"] .menu-icon{background:#e7f5ef!important;color:#52a48b!important}
+.menu-item[href="poker.html"] .menu-icon{background:#f2edfb!important;color:#9b7aca!important}
+.menu-item[href="cl.html"]:hover{background:#f1f6ff}.menu-item[href="dice.html"]:hover{background:#fff8f0}.menu-item[href="gomoku.html"]:hover{background:#f0faf5}.menu-item[href="poker.html"]:hover{background:#f7f3fc}
+.menu-item .menu-icon{font-size:23px}.menu-item:hover .menu-arrow{color:var(--brand)}
+.btn-primary,.btn-submit,.welfare-btn{background:linear-gradient(135deg,#598fe0,#4e80cf)!important;box-shadow:0 3px 10px rgba(77,134,217,.13)!important}
+.player-shell #startBtn{background:#5389d4}.player-shell #startBtn:hover{background:#4076c2}
+.dice-balance{background:#edf5ff;color:#447cc4}.dice-bal-num{color:#447cc4}
+.btn-pick#btnBig.picked{background:#fff1e9;border-color:#e5a17c;color:#c67e54}.btn-pick#btnSmall.picked{background:#eaf3ff;border-color:#8db1df;color:#4e7fbf}
+.result-win,.h-win .dice-h-change{color:#42a184}.result-lose,.h-lose .dice-h-change{color:#d66e7b}
+.welfare-card{background:linear-gradient(135deg,#fff,#fffbf2);border-color:#eee3cd}.welfare-signed,.welfare-desc em{color:#c59843}
+.play-panel .play-actions button{background:#edf4ff;color:#4b7fbd;border-color:#dce8f9}.play-panel .play-actions button:hover:not(:disabled){background:#deebfc}
+.play-panel .go-modes button[aria-pressed="true"]{background:#ecf5f1;color:#568c79;box-shadow:0 1px 3px rgba(45,90,70,.06)}
+.star-btn.active,.star-btn.starred{color:#e3ab3c}
+/* 森林主题入口 */
+.menu-item[href="theme.html"] .menu-icon{background:#e9f3df!important;color:#739650!important}
+.menu-item[href="theme.html"]:hover{background:#f3f8ed}
+.menu-item[href="theme.html"]:hover .menu-arrow{color:#739650}
